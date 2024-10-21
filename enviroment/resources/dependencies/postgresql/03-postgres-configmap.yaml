@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-secret
+  labels:
+    app: postgres
+  namespace: monitoring
+data:
+  POSTGRES_DB: prometheus
+  POSTGRES_USER: prometheus
+  POSTGRES_PASSWORD: prometheus

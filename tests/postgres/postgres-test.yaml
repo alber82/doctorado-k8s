@@ -1,0 +1,12 @@
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: k6-sql
+spec:
+  parallelism: 4
+  script:
+    configMap:
+      name: postgres-stress-test
+      file: postgres-test.js
+  runner:
+    image: 192.168.1.229:5000/grafana/k6-for-sql:latest
