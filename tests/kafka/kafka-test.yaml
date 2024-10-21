@@ -1,0 +1,13 @@
+apiVersion: k6.io/v1alpha1
+kind: K6
+metadata:
+  name: k6-sample
+spec:
+  parallelism: 1
+  script:
+    configMap:
+      name: kafka-stress-test
+      file: kafka-test.js
+######### SPECIFY CUSTOM K6 IMAGE   #######
+  runner:
+    image: mostafamoradian/xk6-kafka:latest

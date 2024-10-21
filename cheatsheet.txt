@@ -1,0 +1,87 @@
+RASPBERRY PI CLUSTER
+
+Pi5
+master1		192.168.1.220		2c:cf:67:80:d6:30	
+worker01		192.168.1.221		2c:cf:67:80:d6:65	
+worker02		192.168.1.222		2c:cf:67:80:d6:5f
+worker03		192.168.1.223	  2c:cf:67:80:d5:aa
+worker04		192.168.1.224		2c:cf:67:06:ad:f8
+
+Pi4
+worker5		192.168.1.225		dc:a6:32:cd:23:c5
+
+
+
+192.168.1.220   master01        master01
+192.168.1.221   worker01        worker01
+192.168.1.222   worker02        worker02
+192.168.1.223   worker03        worker03
+192.168.1.224   worker04        worker04
+192.168.1.225   worker05        worker05
+
+ ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N ""
+
+ https://blog.stonegarden.dev/articles/2024/02/bootstrapping-k3s-with-cilium/#lb-ipam
+
+ helm install cert-manager jetstack/cert-manager 
+  --namespace cert-manager --create-namespace  --version v1.13.2 --values cert-manager-config.yaml
+
+
+K3S_TOKEN=K1004ecb5ba2b86b5a3981c48d527c82929ef13f58594d4fb5ad50cbf590823d1e3::server:d1d5afc3e61ffeec2a92ea491ca20f2c
+API_SERVER_IP=192.168.1.220
+API_SERVER_PORT=6443
+curl -sfL https://get.k3s.io | sh -s - agent \
+  --token "${K3S_TOKEN}" \
+  --server "https://${API_SERVER_IP}:${API_SERVER_PORT}"
+
+https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.1-preinstalled-server-arm64+raspi.img.xz
+
+
+
+IMG=ubuntu-24.04.1-preinstalled-server-arm64+raspi.img.xz
+URL_IMG=https://cdimage.ubuntu.com/releases/24.04/release/${IMG}
+
+
+
+
+#cloud-config
+
+# Set TimeZone and Locale
+timezone: UTC
+locale: es_ES.UTF-8
+
+# Hostname
+hostname: master1
+
+# cloud-init not managing hosts file. only hostname is added
+manage_etc_hosts: localhost
+
+users:
+  # not using default ubuntu user
+  - name: doctorado
+    primary_group: users
+    groups: [adm, admin]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDPwfXsK0oFNT5Q+arpTPh42UXido8r0603OfzrGPlWRu5f0sonbG0MBEwfQWlN4Pd777bGCJBKwSCfDLfbyMUxQDsZN4jX5MoGOSXWMO9xYkmsuRe4//d2ca3jh3TvbZyS4TCGHjEnRT6VVMITnc7x4ti32cj89Zq7h/jy0oYyPTDvdL9jF/Df8MQ6Yuth0wiA2P5rH0Ucjk2zfseeW63TrGatB0TKIMlNmPf+eOEEcaP5FxMundUEveDK2uAXJxkPMSabqDI1nbXbGZ6U4n9per6PHAFUwQXaknVjKwz5wXkGe91j4M+PytX51nB94VRfxa6UfW6RCBAN7fv7kSSRNVLQ7JnI059nT0UANLfX2v3f7R0yxBkL+L6k0eDKIZ9aNYwbboSbJkwtXfpKJmCpzd9qaiUP/xDzTs/bPSgIgbhYN2O/cak3GpBfLGOC3+wCQL186xX0ICxeM1OBqGWeylsFdOwYwDFKfLpMxG5IqHZ1JCYedh8U9dQ0aZU+xMLa/KAOAiynNF01LFgPIxkldf5mKsNspUmR2r0kCU1CmrORpAfWt1KAniqsuDmaLTIHPwlIXOzylUbGN+S5Syv/OJYIL32MKP72yBMUnYSBnzX6VJiOs0NbMtZf38DvEYotDP509v+yDs9dO44+kM8XHXu+olRXehSjI0ce/0oFBw== albertogomez@albertogomez
+
+bootcmd:
+  # Create second Linux partition. Leaving 30GB for root partition
+  # sgdisk /dev/sda -g -e -n=0:30G:0 -t 0:8300
+  # First convert MBR partition to GPT (-g option)
+  # Second moves the GPT backup block to the end of the disk where it belongs (-e option)
+  # Then creates a new partition starting 10GiB into the disk filling the rest of the disk (-n=0:10G:0 option)
+  # And labels it as a Linux partition (-t option)
+  - [cloud-init-per, once, addpartition, sgdisk, /dev/sda, "-g", "-e", "-n=0:30G:0", -t, "0:8300"]
+
+runcmd:
+  # reload partition table
+  - "sudo partprobe /dev/sda"
+  # configure new partition
+  - "mkfs.ext4 /dev/sda3"
+  - "e2label /dev/sda3 DATA"
+  - "mkdir -p /storage"
+  - "mount -t ext4 /dev/sda3 /storage"
+  - "echo LABEL=DATA /storage ext4 defaults 0 0 | sudo tee -a /etc/fstab"
