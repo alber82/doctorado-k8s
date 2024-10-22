@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler
+  labels:
+    app: scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduler
+  template:
+    metadata:
+      labels:
+        app: scheduler
+    spec:
+      serviceAccount: scheduler
+      containers:
+        - name: scheduler
+          image: localhost:5000/albertogomez/scheduler:0.0.0
+          imagePullPolicy: Always
+          env:
+            - name: SCHEDULER_NAME
+              value: "random"

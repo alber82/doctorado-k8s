@@ -1,0 +1,60 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metricscheduler
+subjects:
+- kind: ServiceAccount
+  name: metricscheduler
+  namespace: ns1
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: system:kube-scheduler
+---
+apiVersion: scheduler.uclm.es/v1
+kind: MetricScheduler
+metadata:
+  name: metricscheduler
+  namespace: ns1
+spec:
+  image: localhost:5000/albertogomez/scheduler:0.0.0
+  imagePullPolicy: Always
+  instances: 1
+  resources:
+    requests:
+      cpu: "1"
+      memory: "1024Mi"
+    limits:
+      cpu: "1"
+      memory: "1024Mi"
+  healthchecks:
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+    readinessProbe:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 45%
+      maxUnavailable: 35%
+  filterNodes:
+  - tfm-dev
+  - tfm-dev-m02
+  timescaledb:
+    host: timescaledb.monitoring
+    port: "5432"
+    user: postgres
+    password: patroni
+    database: tsdb
+    authenticationType: MD5
+  metric:
+    name: "node_network_transmit_bytes_total"
+    startDate: "now()- INTERVAL '2 DAYS'"
+    endDate: "now()"
+    operation: "max(value)"
+    priorityOrder: "desc"
+    filters:
+    - "val(device_id)in('eth1')"
+    isSecondLevel: false
