@@ -127,15 +127,15 @@ func (r *TsMetricsSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}, err
 	}
 
-	//_, err = r.createOrUpdateClusterRoleBinding(ctx, &metricScheduler, log, labels)
-	//
-	//if err != nil {
-	//	log.Error(err, "There was an error on create/update cluster role binding")
-	//	return ctrl.Result{
-	//		Requeue:      true,
-	//		RequeueAfter: ReconciliationOnError,
-	//	}, err
-	//}
+	_, err = r.createOrUpdateClusterRoleBinding(ctx, &tsMetricsScheduler, log, labels)
+
+	if err != nil {
+		log.Error(err, "There was an error on create/update cluster role binding")
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: ReconciliationOnError,
+		}, err
+	}
 
 	_, err = r.createOrUpdateDeployment(ctx, &tsMetricsScheduler, log, labels)
 

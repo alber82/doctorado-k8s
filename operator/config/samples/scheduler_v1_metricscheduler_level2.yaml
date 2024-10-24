@@ -10,7 +10,7 @@
 #   kind: ClusterRole
 #   apiGroup: rbac.authorization.k8s.io
 #   name: system:kube-scheduler
-# ---
+---
 apiVersion: scheduler.uclm.es/v1
 kind: TsMetricsScheduler
 metadata:
@@ -50,11 +50,18 @@ spec:
     database: tsdb
     authenticationType: MD5
   metric:
-    name: "node_network_transmit_bytes_total"
-    startDate: "now()- INTERVAL '2 DAYS'"
+    name: "node_cpu_seconds_total"
+    startDate: "now()- INTERVAL '1 MINUTE'"
     endDate: "now()"
-    operation: "max(value)"
-    priorityOrder: "desc"
+    operation: "sum"
+    priorityOrder: "asc"
+    isSecondLevel: true
+    secondLevelSelect:
+    - "val(instance_id)node"
+    - "last(val(cpu_id);time)cpu"
+    - "max(value)value"
+    secondLevelGroup:
+    - "val(instance_id)"
+    - "val(cpu_id)"
     filters:
-    - "val(device_id)in('eth1')"
-    isSecondLevel: false
+    - "val(mode_id)='idle'"
