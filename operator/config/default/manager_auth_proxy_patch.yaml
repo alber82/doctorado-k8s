@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: scheduler-operator
-  namespace: ns1
+  namespace: operator
 spec:
   template:
     spec:

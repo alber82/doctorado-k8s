@@ -5,7 +5,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: metricscheduler
-  namespace: ns1
+  namespace: operator
 roleRef:
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
@@ -15,7 +15,7 @@ apiVersion: scheduler.uclm.es/v1
 kind: MetricScheduler
 metadata:
   name: metricscheduler
-  namespace: ns1
+  namespace: operator
 spec:
   image: localhost:5000/albertogomez/scheduler:0.0.0
   imagePullPolicy: Always

@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: scheduler-operator
-  namespace: ns1
+  namespace: operator
   labels:
     control-plane: scheduler-operator
 spec:
