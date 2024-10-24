@@ -18,4 +18,4 @@ data:
   WATCH_NAMESPACES: ""
 
   # Image Config
-  IMG_METRICSCHEDULER: "localhost:5000/albertogomez/scheduler:0.0.0"
+  IMG_METRICSCHEDULER: "192.168.1.229:5000/doctorado/scheduler:0.0.0"

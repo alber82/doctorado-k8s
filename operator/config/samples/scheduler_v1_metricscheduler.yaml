@@ -17,7 +17,7 @@ metadata:
   name: metricscheduler
   namespace: operator
 spec:
-  image: localhost:5000/albertogomez/scheduler:0.0.0
+  image: 192.168.1.229:5000/doctorado/scheduler:0.0.0
   imagePullPolicy: Always
   instances: 1
   resources:
