@@ -1,0 +1,41 @@
+#cloud-config
+
+# Set TimeZone and Locale
+timezone: UTC
+locale: es_ES.UTF-8
+
+# Hostname
+hostname: master1
+
+# cloud-init not managing hosts file. only hostname is added
+manage_etc_hosts: localhost
+
+users:
+  # not using default ubuntu user
+  - name: doctorado
+    primary_group: users
+    groups: [adm, admin]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDPwfXsK0oFNT5Q+arpTPh42UXido8r0603OfzrGPlWRu5f0sonbG0MBEwfQWlN4Pd777bGCJBKwSCfDLfbyMUxQDsZN4jX5MoGOSXWMO9xYkmsuRe4//d2ca3jh3TvbZyS4TCGHjEnRT6VVMITnc7x4ti32cj89Zq7h/jy0oYyPTDvdL9jF/Df8MQ6Yuth0wiA2P5rH0Ucjk2zfseeW63TrGatB0TKIMlNmPf+eOEEcaP5FxMundUEveDK2uAXJxkPMSabqDI1nbXbGZ6U4n9per6PHAFUwQXaknVjKwz5wXkGe91j4M+PytX51nB94VRfxa6UfW6RCBAN7fv7kSSRNVLQ7JnI059nT0UANLfX2v3f7R0yxBkL+L6k0eDKIZ9aNYwbboSbJkwtXfpKJmCpzd9qaiUP/xDzTs/bPSgIgbhYN2O/cak3GpBfLGOC3+wCQL186xX0ICxeM1OBqGWeylsFdOwYwDFKfLpMxG5IqHZ1JCYedh8U9dQ0aZU+xMLa/KAOAiynNF01LFgPIxkldf5mKsNspUmR2r0kCU1CmrORpAfWt1KAniqsuDmaLTIHPwlIXOzylUbGN+S5Syv/OJYIL32MKP72yBMUnYSBnzX6VJiOs0NbMtZf38DvEYotDP509v+yDs9dO44+kM8XHXu+olRXehSjI0ce/0oFBw== albertogomez@albertogomez
+
+bootcmd:
+  # Create second Linux partition. Leaving 30GB for root partition
+  # sgdisk /dev/sda -g -e -n=0:30G:0 -t 0:8300
+  # First convert MBR partition to GPT (-g option)
+  # Second moves the GPT backup block to the end of the disk where it belongs (-e option)
+  # Then creates a new partition starting 10GiB into the disk filling the rest of the disk (-n=0:10G:0 option)
+  # And labels it as a Linux partition (-t option)
+  - [cloud-init-per, once, addpartition, sgdisk, /dev/sda, "-g", "-e", "-n=0:30G:0", -t, "0:8300"]
+
+runcmd:
+  # reload partition table
+  - "sudo partprobe /dev/sda"
+  # configure new partition
+  - "mkfs.ext4 /dev/sda3"
+  - "e2label /dev/sda3 DATA"
+  - "mkdir -p /storage"
+  - "mount -t ext4 /dev/sda3 /storage"
+  - "echo LABEL=DATA /storage ext4 defaults 0 0 | sudo tee -a /etc/fstab"

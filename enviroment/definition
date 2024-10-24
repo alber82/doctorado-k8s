@@ -1,0 +1,20 @@
+RASPBERRY PI CLUSTER
+
+Pi5
+master01    192.168.1.220	2c:cf:67:80:d6:30
+worker01	192.168.1.221	2c:cf:67:80:d6:65
+worker02	192.168.1.222	2c:cf:67:80:d6:5f
+worker03	192.168.1.223   2c:cf:67:80:d5:aa
+worker04	192.168.1.224	2c:cf:67:06:ad:f8
+
+Pi4
+worker5		192.168.1.225	dc:a6:32:cd:23:c5
+
+##########################################################3
+
+192.168.1.220   master01        master01
+192.168.1.221   worker01        worker01
+192.168.1.222   worker02        worker02
+192.168.1.223   worker03        worker03
+192.168.1.224   worker04        worker04
+192.168.1.225   worker05        worker05
