@@ -36,7 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	batchv1 "scheduler-operator/api/v1"
-	"scheduler-operator/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 
