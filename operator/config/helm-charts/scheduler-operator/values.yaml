@@ -1,0 +1,37 @@
+kubernetesClusterDomain: cluster.local
+schedulerOperator:
+  imgMetricscheduler: 192.168.1.229:5000/doctorado/scheduler:0.0.0
+  logDevMode: "true"
+  logEncoder: console
+  logLevelOperator: debug
+  logLevelStracktrace: error
+  manager:
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+    image:
+      repository: 192.168.1.229:5000/doctorado/scheduler-operator
+      tag: 0.0.0
+    imagePullPolicy: Always
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  podSecurityContext:
+    fsGroupChangePolicy: OnRootMismatch
+    runAsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 2000
+  replicas: 1
+  watchNamespaces: ""
+schedulerOperatorSa:
+  serviceAccount:
+    annotations: {}
+webhookService:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 9443
+  type: ClusterIP

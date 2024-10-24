@@ -1,0 +1,105 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "scheduler-operator.fullname" . }}-scheduler-operator-role
+  labels:
+  {{- include "scheduler-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  - services
+  verbs:
+  - ""
+  - create
+  - delete
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - scheduler.uclm.es
+  resources:
+  - metricschedulers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - scheduler.uclm.es
+  resources:
+  - metricschedulers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - scheduler.uclm.es
+  resources:
+  - metricschedulers/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "scheduler-operator.fullname" . }}-scheduler-operator-rolebinding
+  labels:
+  {{- include "scheduler-operator.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: '{{ include "scheduler-operator.fullname" . }}-scheduler-operator-role'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "scheduler-operator.fullname" . }}-scheduler-operator-sa'
+  namespace: '{{ .Release.Namespace }}'

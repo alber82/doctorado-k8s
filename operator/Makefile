@@ -222,3 +222,15 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
+
+.PHONY: helm-chart
+helm-chart: manifests kustomize ## Synchronyze CRDs inside Helm Chart
+	kustomize build config/crd --output config/helm-charts/$(NAME)/crds/
+
+.PHONY: helm-deploy
+helm-deploy: helm-chart docker ## Deploy operator in the configured Kubernetes cluster in ~/.kube/config via its helm chart
+	helm install -n $(NAMESPACE) --set watchNamespaces="$(NAMESPACE)" --set webhook.caBundle="$(CABUNDLEBASE64)" test config/helm-charts/$(NAME)
+
+.PHONY: helm-undeploy
+helm-undeploy: uninstall ## Undeploy operator in the configured Kubernetes cluster in ~/.kube/config via its helm chart
+	helm uninstall -n $(NAMESPACE) test
