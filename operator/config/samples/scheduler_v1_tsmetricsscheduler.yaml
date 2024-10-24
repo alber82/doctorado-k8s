@@ -1,9 +1,9 @@
 apiVersion: scheduler.uclm.es/v1
-kind: MetricScheduler
+kind: TsMetricsScheduler
 metadata:
   labels:
-    app.kubernetes.io/name: go
+    app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
-  name: metricscheduler-sample
+  name: tsmetricsscheduler-sample
 spec:
   # TODO(user): Add fields here

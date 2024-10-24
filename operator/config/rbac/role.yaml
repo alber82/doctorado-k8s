@@ -2,21 +2,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: scheduler-operator-role
+  name: manager-role
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - create
-  - delete
-  - deletecollection
-  - get
-  - list
-  - patch
-  - update
-  - watch
 - apiGroups:
   - ""
   resources:
@@ -64,7 +51,20 @@ rules:
 - apiGroups:
   - scheduler.uclm.es
   resources:
-  - metricschedulers
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - scheduler.uclm.es
+  resources:
+  - tsmetricsschedulers
   verbs:
   - create
   - delete
@@ -76,13 +76,13 @@ rules:
 - apiGroups:
   - scheduler.uclm.es
   resources:
-  - metricschedulers/finalizers
+  - tsmetricsschedulers/finalizers
   verbs:
   - update
 - apiGroups:
   - scheduler.uclm.es
   resources:
-  - metricschedulers/status
+  - tsmetricsschedulers/status
   verbs:
   - get
   - patch

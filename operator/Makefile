@@ -1,6 +1,3 @@
-
-## General options
-
 NAME = scheduler-operator
 VERSION ?= 0.0.0
 ARTIFACTS_REPO ?= 192.168.1.229:5000
@@ -25,20 +22,18 @@ endif
 # tools. (i.e. podman)
 CONTAINER_TOOL ?= docker
 
+# Namespace
+WATCH_NAMESPACE ?=
+NAMESPACE ?= keos-core
+
+# Images Config
+IMG_OPERATOR ?= ${IMG_REPO}/$(NAME):${VERSION}
+IMG_TSMETRICSSCHEDULER ?= ${IMG_REPO}/tsscheduler:${VERSION}
+
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
-
-# Get Kubernetes CA's bundle for webhook
-CABUNDLEBASE64=$(shell kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}')
-
-# Namespace
-NAMESPACE ?= ns1
-
-# Images Config
-IMG_OPERATOR ?= ${IMG_REPO}/$(NAME):${VERSION}
-IMG_METRICSCHEDULER ?= ${IMG_REPO}/scheduler:${VERSION}
 
 .PHONY: all
 all: build
@@ -64,7 +59,7 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=$(NAME)-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -103,17 +98,21 @@ build: manifests generate fmt vet ## Build manager binary.
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/main.go
+	go run ./cmd/main.go --watch-namespaces=$(WATCH_NAMESPACE) --img-tsmetricsscheduler=$(IMG_TSMETRICSSCHEDULER)
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	DOCKER_BUILDKIT=1 $(CONTAINER_TOOL)  build --ssh default --build-arg VERSION=${VERSION} --force-rm  -t ${IMG_OPERATOR} -f Dockerfile ../../../..
+	$(CONTAINER_TOOL) build -t ${IMG_OPERATOR} .
+
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	$(CONTAINER_TOOL) push ${IMG_OPERATOR}
+
+.PHONY: docker
+docker: docker-build docker-push ## Build and push the operator's docker image
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -138,11 +137,6 @@ build-installer: manifests generate kustomize ## Generate a consolidated YAML wi
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default > dist/install.yaml
 
-.PHONY: docker
-docker: docker-build docker-push ## Build and push the operator's docker image
-
-
-
 ##@ Deployment
 
 ifndef ignore-not-found
@@ -160,8 +154,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG_OPERATOR}
-	$(KUSTOMIZE) build config/default | sed 's/clientConfig:/clientConfig:\n    caBundle: $(CABUNDLEBASE64)/g'| kubectl apply -f -
-
+	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
 .PHONY: undeploy
 undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
@@ -222,15 +215,3 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
-
-.PHONY: helm-chart
-helm-chart: manifests kustomize ## Synchronyze CRDs inside Helm Chart
-	kustomize build config/crd --output config/helm-charts/$(NAME)/crds/
-
-.PHONY: helm-deploy
-helm-deploy: helm-chart docker ## Deploy operator in the configured Kubernetes cluster in ~/.kube/config via its helm chart
-	helm install -n $(NAMESPACE) --set watchNamespaces="$(NAMESPACE)" --set webhook.caBundle="$(CABUNDLEBASE64)" test config/helm-charts/$(NAME)
-
-.PHONY: helm-undeploy
-helm-undeploy: uninstall ## Undeploy operator in the configured Kubernetes cluster in ~/.kube/config via its helm chart
-	helm uninstall -n $(NAMESPACE) test

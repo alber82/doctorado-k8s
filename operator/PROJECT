@@ -14,11 +14,7 @@ resources:
   controller: true
   domain: uclm.es
   group: scheduler
-  kind: MetricScheduler
+  kind: TsMetricsScheduler
   path: scheduler-operator/api/v1
   version: v1
-  webhooks:
-    defaulting: true
-    validation: true
-    webhookVersion: v1
 version: "3"

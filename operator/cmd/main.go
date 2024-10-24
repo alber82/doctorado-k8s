@@ -19,13 +19,8 @@ package main
 import (
 	"crypto/tls"
 	"flag"
-	"fmt"
 	"os"
-	"strings"
-
-	"sigs.k8s.io/controller-runtime/pkg/cache"
-
-	controllers "scheduler-operator/internal/controller/metricscheduler"
+	"scheduler-operator/internal/controller/tsmetricscheduler"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -64,7 +59,6 @@ func main() {
 	var secureMetrics bool
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
-	var watchNamespaces string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -75,8 +69,6 @@ func main() {
 		"If set, the metrics endpoint is served securely via HTTPS. Use --metrics-secure=false to use HTTP instead.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
-	flag.StringVar(&watchNamespaces, "watch-namespaces", "", "The comma-separated list of namespaces to watch. If an empty string (default) is provided, the operator will watch the entire Kubernetes cluster.")
-
 	opts := zap.Options{
 		Development: true,
 	}
@@ -103,25 +95,6 @@ func main() {
 	webhookServer := webhook.NewServer(webhook.Options{
 		TLSOpts: tlsOpts,
 	})
-
-	// When the operator is started to watch resources in a specific set of namespaces, we use the MultiNamespacedCacheBuilder cache.
-	// In this scenario, it is also suggested to restrict the provided authorization to this namespace by replacing the default
-	// ClusterRole and ClusterRoleBinding to Role and RoleBinding respectively
-	// For further information see the kubernetes documentation about
-	// Using [RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
-	var managerWatchCache cache.Options
-	var defaultNamespaces = make(map[string]cache.Config)
-
-	if watchNamespaces != "" {
-		setupLog.Info(fmt.Sprintf("Managing for Namespaces %s", watchNamespaces))
-		ns := strings.Split(watchNamespaces, ",")
-		for _, n := range ns {
-			defaultNamespaces[n] = cache.Config{}
-		}
-		managerWatchCache.DefaultNamespaces = defaultNamespaces
-	} else {
-		setupLog.Info(fmt.Sprintf("Managing for the entire cluster."))
-	}
 
 	// Metrics endpoint is enabled in 'config/default/kustomization.yaml'. The Metrics options configure the server.
 	// More info:
@@ -171,20 +144,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.MetricSchedulerReconciler{
+	if err = (&controllers.TsMetricsSchedulerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "MetricScheduler")
+		setupLog.Error(err, "unable to create controller", "controller", "TsMetricsScheduler")
 		os.Exit(1)
 	}
-
-	//if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-	//	if err = (&schedulerv1.MetricScheduler{}).SetupWebhookWithManager(mgr); err != nil {
-	//		setupLog.Error(err, "unable to create webhook", "webhook", "MetricScheduler")
-	//		os.Exit(1)
-	//	}
-	//}
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

@@ -23,11 +23,11 @@ import (
 )
 
 const (
-	metricSchedulerFinalizerName = "metricscheduler.finalizers.uclm.es"
+	tsMetricSchedulerFinalizerName = "tsmetricscheduler.finalizers.uclm.es"
 )
 
-// MetricSchedulerSpec defines the desired state of MetricScheduler
-type MetricSchedulerSpec struct {
+// TsMetricsSchedulerSpec defines the desired state of TsMetricsScheduler
+type TsMetricsSchedulerSpec struct {
 	// Image URI to retrieve the PgBouncer Task Docker. Depending on your case, you may point to a centralized repository with all your available images, to your Kubernetes Master machine, or to DockerHub (example value provided). Kubernetes will be in charge of downloading the image you specify and run it in the the most suitable agent for your case.
 	// +optional
 	Image string `json:"image"`
@@ -171,44 +171,8 @@ type TimescaledbSpec struct {
 	AuthenticationType string `json:"authenticationType,omitempty"`
 }
 
-// ConstraintsSpec (Constraints Specification)
-type ConstraintsSpec struct {
-	// +optional
-	// Describes affinity scheduling rules.
-	Affinity *corev1.Affinity `json:"affinity,omitempty"`
-
-	// +optional
-	// Describes TopologySpreadConstraint scheduling rules.
-	TopologySpreadConstraint []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
-
-	// +optional
-	// Describes tolerations scheduling rules.
-	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
-
-	// +optional
-	// Describes nodeSelector scheduling rules.
-	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-}
-
-// HealthchecksSpec (Healthchecks Specification)
-type HealthchecksSpec struct {
-	// +optional
-	// Startup Probe
-	StartupProbe *corev1.Probe `json:"startupProbe,omitempty"`
-
-	// +optional
-	// +kubebuilder:default={initialDelaySeconds: 15, periodSeconds: 15, timeoutSeconds: 1, successThreshold: 1, failureThreshold: 3}
-	// Readiness Probe
-	ReadinessProbe *corev1.Probe `json:"readinessProbe,omitempty"`
-
-	// +optional
-	// +kubebuilder:default={initialDelaySeconds: 2, periodSeconds: 5, timeoutSeconds: 1, successThreshold: 1, failureThreshold: 3}
-	// Liveness Probe
-	LivenessProbe *corev1.Probe `json:"livenessProbe,omitempty"`
-}
-
-// MetricScheduler is the Schema for the metricschedulers API
-type MetricSchedulerStatus struct {
+// TsMetricsSchedulerStatus defines the observed state of TsMetricsScheduler
+type TsMetricsSchedulerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -216,44 +180,44 @@ type MetricSchedulerStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// MetricScheduler is the Schema for the metricschedulers API
-type MetricScheduler struct {
+// TsMetricsScheduler is the Schema for the tsmetricsschedulers API
+type TsMetricsScheduler struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   MetricSchedulerSpec   `json:"spec,omitempty"`
-	Status MetricSchedulerStatus `json:"status,omitempty"`
+	Spec   TsMetricsSchedulerSpec   `json:"spec,omitempty"`
+	Status TsMetricsSchedulerStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// MetricSchedulerList contains a list of MetricScheduler
-type MetricSchedulerList struct {
+// TsMetricsSchedulerList contains a list of TsMetricsScheduler
+type TsMetricsSchedulerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []MetricScheduler `json:"items"`
+	Items           []TsMetricsScheduler `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&MetricScheduler{}, &MetricSchedulerList{})
+	SchemeBuilder.Register(&TsMetricsScheduler{}, &TsMetricsSchedulerList{})
 }
 
 // IsDelete return true if the resource is being deleted
-func (metricScheduler *MetricScheduler) IsDelete() bool {
+func (metricScheduler *TsMetricsScheduler) IsDelete() bool {
 	return !metricScheduler.ObjectMeta.DeletionTimestamp.IsZero()
 }
 
 // HasFinalizer returns true if finalizer is set
-func (metricScheduler *MetricScheduler) HasFinalizer() bool {
-	return containsString(metricScheduler.ObjectMeta.Finalizers, metricSchedulerFinalizerName)
+func (metricScheduler *TsMetricsScheduler) HasFinalizer() bool {
+	return containsString(metricScheduler.ObjectMeta.Finalizers, tsMetricSchedulerFinalizerName)
 }
 
 // AddFinalizer adds the finalizer
-func (metricScheduler *MetricScheduler) AddFinalizer() {
-	metricScheduler.ObjectMeta.Finalizers = append(metricScheduler.ObjectMeta.Finalizers, metricSchedulerFinalizerName)
+func (metricScheduler *TsMetricsScheduler) AddFinalizer() {
+	metricScheduler.ObjectMeta.Finalizers = append(metricScheduler.ObjectMeta.Finalizers, tsMetricSchedulerFinalizerName)
 }
 
 // RemoveFinalizer removes the finalizer
-func (metricScheduler *MetricScheduler) RemoveFinalizer() {
-	metricScheduler.ObjectMeta.Finalizers = removeString(metricScheduler.ObjectMeta.Finalizers, metricSchedulerFinalizerName)
+func (metricScheduler *TsMetricsScheduler) RemoveFinalizer() {
+	metricScheduler.ObjectMeta.Finalizers = removeString(metricScheduler.ObjectMeta.Finalizers, tsMetricSchedulerFinalizerName)
 }

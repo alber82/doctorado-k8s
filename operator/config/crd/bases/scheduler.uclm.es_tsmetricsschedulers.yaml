@@ -1,32 +1,24 @@
+---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: metricschedulers.scheduler.uclm.es
+  name: tsmetricsschedulers.scheduler.uclm.es
 spec:
-  conversion:
-    strategy: Webhook
-    webhook:
-      clientConfig:
-        service:
-          name: webhook-service
-          namespace: system
-          path: /convert
-      conversionReviewVersions:
-      - v1
   group: scheduler.uclm.es
   names:
-    kind: MetricScheduler
-    listKind: MetricSchedulerList
-    plural: metricschedulers
-    singular: metricscheduler
+    kind: TsMetricsScheduler
+    listKind: TsMetricsSchedulerList
+    plural: tsmetricsschedulers
+    singular: tsmetricsscheduler
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: MetricScheduler is the Schema for the metricschedulers API
+        description: TsMetricsScheduler is the Schema for the tsmetricsschedulers
+          API
         properties:
           apiVersion:
             description: |-
@@ -46,7 +38,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: MetricSchedulerSpec defines the desired state of MetricScheduler
+            description: TsMetricsSchedulerSpec defines the desired state of TsMetricsScheduler
             properties:
               constraints:
                 description: PgBouncer Constraints
@@ -55,7 +47,8 @@ spec:
                     description: Describes affinity scheduling rules.
                     properties:
                       nodeAffinity:
-                        description: Describes node affinity scheduling rules for the pod.
+                        description: Describes node affinity scheduling rules for
+                          the pod.
                         properties:
                           preferredDuringSchedulingIgnoredDuringExecution:
                             description: |-
@@ -74,17 +67,20 @@ spec:
                                 (i.e. it's a no-op). A null preferred scheduling term matches no objects (i.e. is also a no-op).
                               properties:
                                 preference:
-                                  description: A node selector term, associated with the corresponding weight.
+                                  description: A node selector term, associated with
+                                    the corresponding weight.
                                   properties:
                                     matchExpressions:
-                                      description: A list of node selector requirements by node's labels.
+                                      description: A list of node selector requirements
+                                        by node's labels.
                                       items:
                                         description: |-
                                           A node selector requirement is a selector that contains values, a key, and an operator
                                           that relates the key and values.
                                         properties:
                                           key:
-                                            description: The label key that the selector applies to.
+                                            description: The label key that the selector
+                                              applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -109,14 +105,16 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     matchFields:
-                                      description: A list of node selector requirements by node's fields.
+                                      description: A list of node selector requirements
+                                        by node's fields.
                                       items:
                                         description: |-
                                           A node selector requirement is a selector that contains values, a key, and an operator
                                           that relates the key and values.
                                         properties:
                                           key:
-                                            description: The label key that the selector applies to.
+                                            description: The label key that the selector
+                                              applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -143,7 +141,8 @@ spec:
                                   type: object
                                   x-kubernetes-map-type: atomic
                                 weight:
-                                  description: Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.
+                                  description: Weight associated with matching the
+                                    corresponding nodeSelectorTerm, in the range 1-100.
                                   format: int32
                                   type: integer
                               required:
@@ -161,7 +160,8 @@ spec:
                               may or may not try to eventually evict the pod from its node.
                             properties:
                               nodeSelectorTerms:
-                                description: Required. A list of node selector terms. The terms are ORed.
+                                description: Required. A list of node selector terms.
+                                  The terms are ORed.
                                 items:
                                   description: |-
                                     A null or empty node selector term matches no objects. The requirements of
@@ -169,14 +169,16 @@ spec:
                                     The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.
                                   properties:
                                     matchExpressions:
-                                      description: A list of node selector requirements by node's labels.
+                                      description: A list of node selector requirements
+                                        by node's labels.
                                       items:
                                         description: |-
                                           A node selector requirement is a selector that contains values, a key, and an operator
                                           that relates the key and values.
                                         properties:
                                           key:
-                                            description: The label key that the selector applies to.
+                                            description: The label key that the selector
+                                              applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -201,14 +203,16 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     matchFields:
-                                      description: A list of node selector requirements by node's fields.
+                                      description: A list of node selector requirements
+                                        by node's fields.
                                       items:
                                         description: |-
                                           A node selector requirement is a selector that contains values, a key, and an operator
                                           that relates the key and values.
                                         properties:
                                           key:
-                                            description: The label key that the selector applies to.
+                                            description: The label key that the selector
+                                              applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -242,7 +246,9 @@ spec:
                             x-kubernetes-map-type: atomic
                         type: object
                       podAffinity:
-                        description: Describes pod affinity scheduling rules (e.g. co-locate this pod in the same node, zone, etc. as some other pod(s)).
+                        description: Describes pod affinity scheduling rules (e.g.
+                          co-locate this pod in the same node, zone, etc. as some
+                          other pod(s)).
                         properties:
                           preferredDuringSchedulingIgnoredDuringExecution:
                             description: |-
@@ -256,10 +262,13 @@ spec:
                               "weight" to the sum if the node has pods which matches the corresponding podAffinityTerm; the
                               node(s) with the highest sum are the most preferred.
                             items:
-                              description: The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)
+                              description: The weights of all of the matched WeightedPodAffinityTerm
+                                fields are added per-node to find the most preferred
+                                node(s)
                               properties:
                                 podAffinityTerm:
-                                  description: Required. A pod affinity term, associated with the corresponding weight.
+                                  description: Required. A pod affinity term, associated
+                                    with the corresponding weight.
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -267,14 +276,17 @@ spec:
                                         If it's null, this PodAffinityTerm matches with no Pods.
                                       properties:
                                         matchExpressions:
-                                          description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                          description: matchExpressions is a list
+                                            of label selector requirements. The requirements
+                                            are ANDed.
                                           items:
                                             description: |-
                                               A label selector requirement is a selector that contains values, a key, and an operator that
                                               relates the key and values.
                                             properties:
                                               key:
-                                                description: key is the label key that the selector applies to.
+                                                description: key is the label key
+                                                  that the selector applies to.
                                                 type: string
                                               operator:
                                                 description: |-
@@ -346,14 +358,17 @@ spec:
                                         An empty selector ({}) matches all namespaces.
                                       properties:
                                         matchExpressions:
-                                          description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                          description: matchExpressions is a list
+                                            of label selector requirements. The requirements
+                                            are ANDed.
                                           items:
                                             description: |-
                                               A label selector requirement is a selector that contains values, a key, and an operator that
                                               relates the key and values.
                                             properties:
                                               key:
-                                                description: key is the label key that the selector applies to.
+                                                description: key is the label key
+                                                  that the selector applies to.
                                                 type: string
                                               operator:
                                                 description: |-
@@ -443,14 +458,17 @@ spec:
                                     If it's null, this PodAffinityTerm matches with no Pods.
                                   properties:
                                     matchExpressions:
-                                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
                                       items:
                                         description: |-
                                           A label selector requirement is a selector that contains values, a key, and an operator that
                                           relates the key and values.
                                         properties:
                                           key:
-                                            description: key is the label key that the selector applies to.
+                                            description: key is the label key that
+                                              the selector applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -522,14 +540,17 @@ spec:
                                     An empty selector ({}) matches all namespaces.
                                   properties:
                                     matchExpressions:
-                                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
                                       items:
                                         description: |-
                                           A label selector requirement is a selector that contains values, a key, and an operator that
                                           relates the key and values.
                                         properties:
                                           key:
-                                            description: key is the label key that the selector applies to.
+                                            description: key is the label key that
+                                              the selector applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -587,7 +608,9 @@ spec:
                             x-kubernetes-list-type: atomic
                         type: object
                       podAntiAffinity:
-                        description: Describes pod anti-affinity scheduling rules (e.g. avoid putting this pod in the same node, zone, etc. as some other pod(s)).
+                        description: Describes pod anti-affinity scheduling rules
+                          (e.g. avoid putting this pod in the same node, zone, etc.
+                          as some other pod(s)).
                         properties:
                           preferredDuringSchedulingIgnoredDuringExecution:
                             description: |-
@@ -601,10 +624,13 @@ spec:
                               "weight" to the sum if the node has pods which matches the corresponding podAffinityTerm; the
                               node(s) with the highest sum are the most preferred.
                             items:
-                              description: The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)
+                              description: The weights of all of the matched WeightedPodAffinityTerm
+                                fields are added per-node to find the most preferred
+                                node(s)
                               properties:
                                 podAffinityTerm:
-                                  description: Required. A pod affinity term, associated with the corresponding weight.
+                                  description: Required. A pod affinity term, associated
+                                    with the corresponding weight.
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -612,14 +638,17 @@ spec:
                                         If it's null, this PodAffinityTerm matches with no Pods.
                                       properties:
                                         matchExpressions:
-                                          description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                          description: matchExpressions is a list
+                                            of label selector requirements. The requirements
+                                            are ANDed.
                                           items:
                                             description: |-
                                               A label selector requirement is a selector that contains values, a key, and an operator that
                                               relates the key and values.
                                             properties:
                                               key:
-                                                description: key is the label key that the selector applies to.
+                                                description: key is the label key
+                                                  that the selector applies to.
                                                 type: string
                                               operator:
                                                 description: |-
@@ -691,14 +720,17 @@ spec:
                                         An empty selector ({}) matches all namespaces.
                                       properties:
                                         matchExpressions:
-                                          description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                          description: matchExpressions is a list
+                                            of label selector requirements. The requirements
+                                            are ANDed.
                                           items:
                                             description: |-
                                               A label selector requirement is a selector that contains values, a key, and an operator that
                                               relates the key and values.
                                             properties:
                                               key:
-                                                description: key is the label key that the selector applies to.
+                                                description: key is the label key
+                                                  that the selector applies to.
                                                 type: string
                                               operator:
                                                 description: |-
@@ -788,14 +820,17 @@ spec:
                                     If it's null, this PodAffinityTerm matches with no Pods.
                                   properties:
                                     matchExpressions:
-                                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
                                       items:
                                         description: |-
                                           A label selector requirement is a selector that contains values, a key, and an operator that
                                           relates the key and values.
                                         properties:
                                           key:
-                                            description: key is the label key that the selector applies to.
+                                            description: key is the label key that
+                                              the selector applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -867,14 +902,17 @@ spec:
                                     An empty selector ({}) matches all namespaces.
                                   properties:
                                     matchExpressions:
-                                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
                                       items:
                                         description: |-
                                           A label selector requirement is a selector that contains values, a key, and an operator that
                                           relates the key and values.
                                         properties:
                                           key:
-                                            description: key is the label key that the selector applies to.
+                                            description: key is the label key that
+                                              the selector applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -979,7 +1017,8 @@ spec:
                   topologySpreadConstraints:
                     description: Describes TopologySpreadConstraint scheduling rules.
                     items:
-                      description: TopologySpreadConstraint specifies how to spread matching pods among the given topology.
+                      description: TopologySpreadConstraint specifies how to spread
+                        matching pods among the given topology.
                       properties:
                         labelSelector:
                           description: |-
@@ -988,14 +1027,16 @@ spec:
                             in their corresponding topology domain.
                           properties:
                             matchExpressions:
-                              description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                              description: matchExpressions is a list of label selector
+                                requirements. The requirements are ANDed.
                               items:
                                 description: |-
                                   A label selector requirement is a selector that contains values, a key, and an operator that
                                   relates the key and values.
                                 properties:
                                   key:
-                                    description: key is the label key that the selector applies to.
+                                    description: key is the label key that the selector
+                                      applies to.
                                     type: string
                                   operator:
                                     description: |-
@@ -1194,7 +1235,8 @@ spec:
                         description: GRPC specifies an action involving a GRPC port.
                         properties:
                           port:
-                            description: Port number of the gRPC service. Number must be in the range 1 to 65535.
+                            description: Port number of the gRPC service. Number must
+                              be in the range 1 to 65535.
                             format: int32
                             type: integer
                           service:
@@ -1217,9 +1259,11 @@ spec:
                               "Host" in httpHeaders instead.
                             type: string
                           httpHeaders:
-                            description: Custom headers to set in the request. HTTP allows repeated headers.
+                            description: Custom headers to set in the request. HTTP
+                              allows repeated headers.
                             items:
-                              description: HTTPHeader describes a custom header to be used in HTTP probes
+                              description: HTTPHeader describes a custom header to
+                                be used in HTTP probes
                               properties:
                                 name:
                                   description: |-
@@ -1274,10 +1318,12 @@ spec:
                         format: int32
                         type: integer
                       tcpSocket:
-                        description: TCPSocket specifies an action involving a TCP port.
+                        description: TCPSocket specifies an action involving a TCP
+                          port.
                         properties:
                           host:
-                            description: 'Optional: Host name to connect to, defaults to the pod IP.'
+                            description: 'Optional: Host name to connect to, defaults
+                              to the pod IP.'
                             type: string
                           port:
                             anyOf:
@@ -1347,7 +1393,8 @@ spec:
                         description: GRPC specifies an action involving a GRPC port.
                         properties:
                           port:
-                            description: Port number of the gRPC service. Number must be in the range 1 to 65535.
+                            description: Port number of the gRPC service. Number must
+                              be in the range 1 to 65535.
                             format: int32
                             type: integer
                           service:
@@ -1370,9 +1417,11 @@ spec:
                               "Host" in httpHeaders instead.
                             type: string
                           httpHeaders:
-                            description: Custom headers to set in the request. HTTP allows repeated headers.
+                            description: Custom headers to set in the request. HTTP
+                              allows repeated headers.
                             items:
-                              description: HTTPHeader describes a custom header to be used in HTTP probes
+                              description: HTTPHeader describes a custom header to
+                                be used in HTTP probes
                               properties:
                                 name:
                                   description: |-
@@ -1427,10 +1476,12 @@ spec:
                         format: int32
                         type: integer
                       tcpSocket:
-                        description: TCPSocket specifies an action involving a TCP port.
+                        description: TCPSocket specifies an action involving a TCP
+                          port.
                         properties:
                           host:
-                            description: 'Optional: Host name to connect to, defaults to the pod IP.'
+                            description: 'Optional: Host name to connect to, defaults
+                              to the pod IP.'
                             type: string
                           port:
                             anyOf:
@@ -1494,7 +1545,8 @@ spec:
                         description: GRPC specifies an action involving a GRPC port.
                         properties:
                           port:
-                            description: Port number of the gRPC service. Number must be in the range 1 to 65535.
+                            description: Port number of the gRPC service. Number must
+                              be in the range 1 to 65535.
                             format: int32
                             type: integer
                           service:
@@ -1517,9 +1569,11 @@ spec:
                               "Host" in httpHeaders instead.
                             type: string
                           httpHeaders:
-                            description: Custom headers to set in the request. HTTP allows repeated headers.
+                            description: Custom headers to set in the request. HTTP
+                              allows repeated headers.
                             items:
-                              description: HTTPHeader describes a custom header to be used in HTTP probes
+                              description: HTTPHeader describes a custom header to
+                                be used in HTTP probes
                               properties:
                                 name:
                                   description: |-
@@ -1574,10 +1628,12 @@ spec:
                         format: int32
                         type: integer
                       tcpSocket:
-                        description: TCPSocket specifies an action involving a TCP port.
+                        description: TCPSocket specifies an action involving a TCP
+                          port.
                         properties:
                           host:
-                            description: 'Optional: Host name to connect to, defaults to the pod IP.'
+                            description: 'Optional: Host name to connect to, defaults
+                              to the pod IP.'
                             type: string
                           port:
                             anyOf:
@@ -1615,7 +1671,12 @@ spec:
                     type: object
                 type: object
               image:
-                description: Image URI to retrieve the PgBouncer Task Docker. Depending on your case, you may point to a centralized repository with all your available images, to your Kubernetes Master machine, or to DockerHub (example value provided). Kubernetes will be in charge of downloading the image you specify and run it in the the most suitable agent for your case.
+                description: Image URI to retrieve the PgBouncer Task Docker. Depending
+                  on your case, you may point to a centralized repository with all
+                  your available images, to your Kubernetes Master machine, or to
+                  DockerHub (example value provided). Kubernetes will be in charge
+                  of downloading the image you specify and run it in the the most
+                  suitable agent for your case.
                 type: string
               imagePullPolicy:
                 default: Always
@@ -1686,7 +1747,10 @@ spec:
                 description: Scheduler name
                 type: string
               priorityClassName:
-                description: PriorityClassName is the name of the PriorityClassName cluster resource. This replaces the globalDefault priority class name. For. For more information, refer to the Kubernetes Priority Class documentation.
+                description: PriorityClassName is the name of the PriorityClassName
+                  cluster resource. This replaces the globalDefault priority class
+                  name. For. For more information, refer to the Kubernetes Priority
+                  Class documentation.
                 type: string
               resources:
                 default:
@@ -1833,14 +1897,15 @@ spec:
                         x-kubernetes-int-or-string: true
                     type: object
                   type:
-                    description: Type of deployment. Can be "Recreate" or "RollingUpdate". Default is RollingUpdate.
+                    description: Type of deployment. Can be "Recreate" or "RollingUpdate".
+                      Default is RollingUpdate.
                     type: string
                 type: object
             required:
             - instances
             type: object
           status:
-            description: MetricScheduler is the Schema for the metricschedulers API
+            description: TsMetricsSchedulerStatus defines the observed state of TsMetricsScheduler
             type: object
         type: object
     served: true
