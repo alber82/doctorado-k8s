@@ -42,9 +42,9 @@ const (
 	ReconciliationOnOk    time.Duration = 120 * time.Second
 )
 
-//+kubebuilder:rbac:groups=scheduler.uclm.es,resources=metricschedulers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=scheduler.uclm.es,resources=metricschedulers/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=scheduler.uclm.es,resources=metricschedulers/finalizers,verbs=update
+// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=metricschedulers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=metricschedulers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=metricschedulers/finalizers,verbs=update
 
 // Annotation for generating RBAC role for scheduler Objects
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=create;get;list;patch;update;watch;delete;deletecollection
@@ -64,7 +64,7 @@ const (
 // the user.
 //
 // For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.1/pkg/reconcile
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/reconcile
 func (r *MetricSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("metricscheduler", req.NamespacedName)
 	log.V(1).Info("Reconciling metricScheduler")
