@@ -27,8 +27,6 @@ import (
 	schedulerv1 "scheduler-operator/api/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	batchv1 "scheduler-operator/api/v1"
 )
 
 // MetricSchedulerReconciler reconciles a MetricScheduler object
@@ -156,6 +154,6 @@ func (r *MetricSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 // SetupWithManager sets up the controller with the Manager.
 func (r *MetricSchedulerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&batchv1.MetricScheduler{}).
+		For(&schedulerv1.MetricScheduler{}).
 		Complete(r)
 }

@@ -1,4 +1,4 @@
-apiVersion: batch.uclm.es/v1
+apiVersion: scheduler.uclm.es/v1
 kind: MetricScheduler
 metadata:
   labels:

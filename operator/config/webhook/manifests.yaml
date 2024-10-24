@@ -10,12 +10,12 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-batch-uclm-es-v1-metricscheduler
+      path: /mutate-scheduler-uclm-es-v1-metricscheduler
   failurePolicy: Fail
   name: mmetricscheduler.kb.io
   rules:
   - apiGroups:
-    - batch.uclm.es
+    - scheduler.uclm.es
     apiVersions:
     - v1
     operations:
@@ -36,12 +36,12 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-batch-uclm-es-v1-metricscheduler
+      path: /validate-scheduler-uclm-es-v1-metricscheduler
   failurePolicy: Fail
   name: vmetricscheduler.kb.io
   rules:
   - apiGroups:
-    - batch.uclm.es
+    - scheduler.uclm.es
     apiVersions:
     - v1
     operations:

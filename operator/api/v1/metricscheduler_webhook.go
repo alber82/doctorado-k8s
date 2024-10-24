@@ -36,7 +36,7 @@ func (r *MetricScheduler) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-// +kubebuilder:webhook:path=/mutate-batch-uclm-es-v1-metricscheduler,mutating=true,failurePolicy=fail,sideEffects=None,groups=batch.uclm.es,resources=metricschedulers,verbs=create;update,versions=v1,name=mmetricscheduler.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/mutate-scheduler-uclm-es-v1-metricscheduler,mutating=true,failurePolicy=fail,sideEffects=None,groups=scheduler.uclm.es,resources=metricschedulers,verbs=create;update,versions=v1,name=mmetricscheduler.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Defaulter = &MetricScheduler{}
 
@@ -50,7 +50,7 @@ func (r *MetricScheduler) Default() {
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 // NOTE: The 'path' attribute must follow a specific pattern and should not be modified directly here.
 // Modifying the path for an invalid path can cause API server errors; failing to locate the webhook.
-// +kubebuilder:webhook:path=/validate-batch-uclm-es-v1-metricscheduler,mutating=false,failurePolicy=fail,sideEffects=None,groups=batch.uclm.es,resources=metricschedulers,verbs=create;update,versions=v1,name=vmetricscheduler.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/validate-scheduler-uclm-es-v1-metricscheduler,mutating=false,failurePolicy=fail,sideEffects=None,groups=scheduler.uclm.es,resources=metricschedulers,verbs=create;update,versions=v1,name=vmetricscheduler.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Validator = &MetricScheduler{}
 

@@ -1,4 +1,4 @@
 ## Append samples of your project ##
 resources:
-- batch_v1_metricscheduler.yaml
+- scheduler_v1_metricscheduler.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

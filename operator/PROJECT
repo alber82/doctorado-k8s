@@ -13,7 +13,7 @@ resources:
     namespaced: true
   controller: true
   domain: uclm.es
-  group: batch
+  group: scheduler
   kind: MetricScheduler
   path: scheduler-operator/api/v1
   version: v1

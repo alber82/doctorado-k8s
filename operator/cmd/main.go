@@ -41,7 +41,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	batchv1 "scheduler-operator/api/v1"
+	schedulerv1 "scheduler-operator/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -53,7 +53,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(batchv1.AddToScheme(scheme))
+	utilruntime.Must(schedulerv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -178,6 +178,12 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "MetricScheduler")
 		os.Exit(1)
 	}
+	//if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+	//	if err = (&schedulerv1.MetricScheduler{}).SetupWebhookWithManager(mgr); err != nil {
+	//		setupLog.Error(err, "unable to create webhook", "webhook", "MetricScheduler")
+	//		os.Exit(1)
+	//	}
+	//}
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

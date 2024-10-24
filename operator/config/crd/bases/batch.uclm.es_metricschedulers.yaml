@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: metricschedulers.batch.uclm.es
+  name: metricschedulers.scheduler.uclm.es
 spec:
-  group: batch.uclm.es
+  group: scheduler.uclm.es
   names:
     kind: MetricScheduler
     listKind: MetricSchedulerList
