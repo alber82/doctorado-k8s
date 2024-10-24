@@ -1,0 +1,21 @@
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scheduler-operator
+  namespace: ns1
+  labels:
+    control-plane: scheduler-operator
+data:
+  # LOG Config
+  LOG_DEV_MODE: "true"
+  LOG_ENCODER: "console"
+  LOG_LEVEL_OPERATOR: "debug"
+  LOG_LEVEL_STRACKTRACE: "error"
+
+  # Namespaces to Watch
+  WATCH_NAMESPACES: "ns1"
+
+  # Image Config
+  IMG_METRICSCHEDULER: "localhost:5000/albertogomez/scheduler:0.0.0"

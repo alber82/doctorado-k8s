@@ -1,0 +1,31 @@
+# permissions for end users to edit metricschedulers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: metricscheduler-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: go
+    app.kubernetes.io/part-of: go
+    app.kubernetes.io/managed-by: kustomize
+  name: metricscheduler-editor-role
+rules:
+- apiGroups:
+  - scheduler.uclm.es
+  resources:
+  - metricschedulers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - scheduler.uclm.es
+  resources:
+  - metricschedulers/status
+  verbs:
+  - get

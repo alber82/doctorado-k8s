@@ -1,0 +1,54 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-scheduler-uclm-es-v1-metricscheduler
+  failurePolicy: Fail
+  name: mmetricscheduler.uclm.es
+  rules:
+  - apiGroups:
+    - scheduler.uclm.es
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - metricschedulers
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-scheduler-uclm-es-v1-metricscheduler
+  failurePolicy: Fail
+  name: vmetricscheduler.uclm.es
+  rules:
+  - apiGroups:
+    - scheduler.uclm.es
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - metricschedulers
+  sideEffects: None
