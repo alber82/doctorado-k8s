@@ -1,0 +1,20 @@
+cat <<EOF | kubectl -n ns1 apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod01
+  labels:
+    name: pod01
+spec:
+  schedulerName: metricscheduler
+  containers:
+  - name: pod01
+    image: registry.k8s.io/pause:2.0
+    resources:
+      requests:
+        cpu: 500m
+        memory:512M
+      limits:
+        cpu: 500m
+        memory: 512M
+EOF
