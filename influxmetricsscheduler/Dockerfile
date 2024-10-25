@@ -27,7 +27,7 @@ FROM alpine:3.20.3
 
 COPY --from=builder /workspace/scheduler scheduler
 
-COPY influxmetricsscheduler/start.sh /
+COPY influxmetricsscheduler/start.sh /start.sh
 
 ENTRYPOINT ["/start.sh"]
 
