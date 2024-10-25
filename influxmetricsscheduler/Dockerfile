@@ -22,8 +22,9 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o sc
 
 FROM alpine:3.20.3
 
+WORKDIR /
 COPY --from=builder /workspace/scheduler .
 
-COPY influxmetricsscheduler/start.sh /
+#COPY influxmetricsscheduler/start.sh /start.sh
 
-ENTRYPOINT ["/start.sh"]
+ENTRYPOINT ["/scheduler"]
