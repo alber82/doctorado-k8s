@@ -25,9 +25,13 @@ RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o scheduler -ldflags "-X
 
 FROM alpine:3.20.3
 
-COPY --from=builder /workspace/scheduler scheduler
+WORKDIR /
 
-COPY influxmetricsscheduler/start.sh /start.sh
+COPY --from=builder /workspace/scheduler .
+COPY influxmetricsscheduler/start.sh .
 
-ENTRYPOINT ["/start.sh"]
+USER nobody:nobody
+
+
+ENTRYPOINT ["/scheduler"]
 
