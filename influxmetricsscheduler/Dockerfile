@@ -17,17 +17,17 @@ COPY influxmetricsscheduler/pkg/commons/commons.go pkg/commons/commons.go
 COPY influxmetricsscheduler/pkg/influxdb/influxclient.go pkg/influxdb/influxclient.go
 
 # Vet
-RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go vet ./...
+RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go vet ./...
 # Test
-RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go test ./... -coverprofile cover.out -coverpkg=./...
+RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go test ./... -coverprofile cover.out -coverpkg=./...
 # Build
-RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o scheduler -ldflags "-X main.Version=$VERSION" main.go
+RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go build -a -o scheduler -ldflags "-X main.Version=$VERSION" main.go
 
-#FROM alpine:3.20.3
-FROM centos:7
+FROM alpine:3.20.3
 
 COPY --from=builder /workspace/scheduler scheduler
 
 COPY influxmetricsscheduler/start.sh /
 
-ENTRYPOINT ["/start.sh"]
+#ENTRYPOINT ["/start.sh"]
+ENTRYPOINT ["scheduler"]
