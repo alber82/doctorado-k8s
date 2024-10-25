@@ -60,7 +60,7 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 
 	//TimescaleDbParams
 	flag.StringVar(&params.Influxdb.Host, "influxdb-host", commons.LookupEnvOrString("INFLUXDB_HOST", "influxdb-influxdb2.monitoring"), "host to connect to influxdb")
-	flag.StringVar(&params.Influxdb.Port, "influxdb-port", commons.LookupEnvOrString("INFLUXDB_PORT", "8086"), "port to connect to influxdb")
+	flag.StringVar(&params.Influxdb.Port, "influxdb-port", commons.LookupEnvOrString("INFLUXDB_PORT", "80"), "port to connect to influxdb")
 	flag.StringVar(&params.Influxdb.Token, "influxdb-token", commons.LookupEnvOrString("INFLUXDB_TOKEN", "klsjdaioqwehrqoikdnmxcq"), "token to connect to influxdb")
 	flag.StringVar(&params.Influxdb.Organization, "influxdb-organization", commons.LookupEnvOrString("INFLUXDB_ORGANIZATION", "uclm"), "organization where connect to influxdb")
 	flag.StringVar(&params.Influxdb.Bucket, "influxdb-bucket", commons.LookupEnvOrString("INFLUXDB_BUCKET", "doctorado"), "bucket to connect to influxdb")
