@@ -5,6 +5,7 @@ import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 	"main/pkg/commons"
 )
 
@@ -40,7 +41,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 	client := influxdb2.NewClient(fmt.Sprintf("http://%s:%s", dbConnectionParams.Host, dbConnectionParams.Port), dbConnectionParams.Token)
 	// Get query client
 	queryAPI := client.QueryAPI(dbConnectionParams.Organization)
-
+	log.Info("Connected to InfluxDB")
 	result, err := queryAPI.Query(context.Background(), `from(bucket:"doctorado")|> range(start: -1h) |> filter(fn: (r) => r._measurement == "stat")`)
 
 	if err == nil {
