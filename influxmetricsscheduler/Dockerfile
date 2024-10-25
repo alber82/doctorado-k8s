@@ -1,5 +1,7 @@
 # build stage
-FROM golang:1.23.2 as builder
+FROM golang:1.23.2 AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /workspace
 
@@ -17,11 +19,12 @@ COPY influxmetricsscheduler/pkg/commons/commons.go pkg/commons/commons.go
 COPY influxmetricsscheduler/pkg/influxdb/influxclient.go pkg/influxdb/influxclient.go
 
 # Vet
-RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go vet ./...
-# Test
-RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go test ./... -coverprofile cover.out -coverpkg=./...
-# Build
-RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go build -a -o scheduler -ldflags "-X main.Version=$VERSION" main.go
+#RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go vet ./...
+## Test
+#RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go test ./... -coverprofile cover.out -coverpkg=./...
+## Build
+#RUN GOOS=linux GOARCH=arm64 GO111MODULE=on go build -a -o scheduler -ldflags "-X main.Version=$VERSION" main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o scheduler main.go
 
 FROM alpine:3.20.3
 
