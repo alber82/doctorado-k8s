@@ -23,15 +23,11 @@ RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go test ./... -coverprofile cover.out
 # Build
 RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o scheduler -ldflags "-X main.Version=$VERSION" main.go
 
-FROM alpine:3.20.3
+#FROM alpine:3.20.3
+FROM centos:7
 
-WORKDIR /
+COPY --from=builder /workspace/scheduler scheduler
 
-COPY --from=builder /workspace/scheduler .
-COPY influxmetricsscheduler/start.sh .
+COPY influxmetricsscheduler/start.sh /
 
-USER nobody:nobody
-
-
-ENTRYPOINT ["/scheduler"]
-
+ENTRYPOINT ["/start.sh"]
