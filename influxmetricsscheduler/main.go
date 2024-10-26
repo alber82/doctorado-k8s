@@ -214,7 +214,7 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 
 	priorityMap, _ := s.dbClient.GetMetrics(s.schedulerParams.MetricParams)
 
-	var filteredPriorities = make(map[string]int)
+	var filteredPriorities = make(map[string]int32)
 	for k, v := range priorityMap {
 		if commons.Contains(ipSlice, k) {
 			filteredPriorities[k] = v
@@ -356,8 +356,8 @@ func (s *Scheduler) fitResourcesPredicate(node *v1.Node, pod *v1.Pod) bool {
 	return true
 }
 
-func (s *Scheduler) findBestNode(priorities map[string]int) string {
-	var maxP int
+func (s *Scheduler) findBestNode(priorities map[string]int32) string {
+	var maxP int32
 	var bestNode string
 	for node, p := range priorities {
 		if p > maxP {
