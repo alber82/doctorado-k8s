@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"main/pkg/commons"
+	"reflect"
 )
 
 type DatabaseClient struct {
@@ -73,8 +74,14 @@ union(tables: [ First, Last])
 			if result.TableChanged() {
 				log.Info(fmt.Printf("table: %s\n", result.TableMetadata().String()))
 			}
+
+			float, err := getFloat(result.Record().Value())
+			if err != nil {
+				return nil, err
+			}
+
 			// Access data
-			log.Info(fmt.Printf("value: %v\n", result.Record().Value()))
+			log.Info(fmt.Printf("instance: %s  %f\n", result.Record().ValueByKey("instance"), float))
 		}
 		// check for an error
 		if result.Err() != nil {
@@ -94,4 +101,16 @@ union(tables: [ First, Last])
 	//}
 
 	return priorityMap, nil
+}
+
+var floatType = reflect.TypeOf(float64(0))
+
+func getFloat(unk interface{}) (float64, error) {
+	v := reflect.ValueOf(unk)
+	v = reflect.Indirect(v)
+	if !v.Type().ConvertibleTo(floatType) {
+		return 0, fmt.Errorf("cannot convert %v to float64", v.Type())
+	}
+	fv := v.Convert(floatType)
+	return fv.Float(), nil
 }
