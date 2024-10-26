@@ -42,21 +42,43 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 	// Get query client
 	queryAPI := client.QueryAPI(dbConnectionParams.Organization)
 	log.Info("Connected to InfluxDB")
-	result, err := queryAPI.Query(context.Background(), `from(bucket:"doctorado")|> range(start: -1h) |> filter(fn: (r) => r._measurement == "stat")`)
+	result, err := queryAPI.Query(context.Background(), `import "math"
+
+First = from(bucket: "doctorado")
+  |> range(start: -20m, stop: -10m)
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: ["instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -1h, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: [ "instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))`)
 
 	if err == nil {
 		// Iterate over query response
 		for result.Next() {
 			// Notice when group key has changed
 			if result.TableChanged() {
-				fmt.Printf("table: %s\n", result.TableMetadata().String())
+				log.Info(fmt.Printf("table: %s\n", result.TableMetadata().String()))
 			}
 			// Access data
-			fmt.Printf("value: %v\n", result.Record().Value())
+			log.Info(fmt.Printf("value: %v\n", result.Record().Value()))
 		}
 		// check for an error
 		if result.Err() != nil {
-			fmt.Printf("query parsing error: %s\n", result.Err().Error())
+			log.Info(fmt.Printf("query parsing error: %s\n", result.Err().Error()))
 		}
 	} else {
 		panic(err)
