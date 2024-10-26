@@ -102,6 +102,8 @@ union(tables: [ First, Last])
 	//	priorityMap[m.node] = m.rowid
 	//}
 
+	log.Info(fmt.Sprintf("priorityMap %v", priorityMap))
+
 	return priorityMap, nil
 }
 
