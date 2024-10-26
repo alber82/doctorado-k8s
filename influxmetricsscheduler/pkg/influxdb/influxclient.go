@@ -74,9 +74,9 @@ union(tables: [ First, Last])
 		// Iterate over query response
 		for result.Next() {
 			//// Notice when group key has changed
-			//if result.TableChanged() {
-			//	log.Info(fmt.Printf("table: %s\n", result.TableMetadata().String()))
-			//}
+			if result.TableChanged() {
+				log.Info(fmt.Printf("table: %s\n", result.TableMetadata().String()))
+			}
 
 			instance, err := getString(result.Record().ValueByKey("instance"))
 			if err != nil {
@@ -89,7 +89,7 @@ union(tables: [ First, Last])
 			}
 			priorityMap[instance] = value
 			// Access data
-			//log.Info(fmt.Printf("instance: %s  %f\n", result.Record().ValueByKey("instance"), float))
+			log.Info(fmt.Printf("instance: %s  %d\n", instance, value))
 		}
 		// check for an error
 		if result.Err() != nil {
