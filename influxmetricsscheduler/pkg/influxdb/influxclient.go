@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"main/pkg/commons"
 	"reflect"
+	"strings"
 )
 
 type DatabaseClient struct {
@@ -83,7 +84,7 @@ union(tables: [ First, Last])
 				return nil, err
 			}
 
-			priorityMap[fmt.Sprintf("%s", result.Record().ValueByKey("instance"))] = int32(float)
+			priorityMap[strings.Split(fmt.Sprintf("%s", result.Record().ValueByKey("instance")), ":")[0]] = int32(float)
 			// Access data
 			log.Info(fmt.Printf("instance: %s  %f\n", result.Record().ValueByKey("instance"), float))
 		}
