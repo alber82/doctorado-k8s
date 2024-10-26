@@ -73,23 +73,19 @@ union(tables: [ First, Last])
 	if err == nil {
 		// Iterate over query response
 		for result.Next() {
-			//// Notice when group key has changed
+			// Notice when group key has changed
 			if result.TableChanged() {
 				log.Info(fmt.Printf("table: %s\n", result.TableMetadata().String()))
 			}
 
-			instance, err := getString(result.Record().ValueByKey("instance"))
+			float, err := getFloat(result.Record().Value())
 			if err != nil {
 				return nil, err
 			}
 
-			value, intErr := getInt32(result.Record().Value())
-			if intErr != nil {
-				return nil, intErr
-			}
-			priorityMap[instance] = value
+			priorityMap[fmt.Sprintf("%s", result.Record().ValueByKey("instance"))] = int32(float)
 			// Access data
-			log.Info(fmt.Printf("instance: %s  %d\n", instance, value))
+			log.Info(fmt.Printf("instance: %s  %f\n", result.Record().ValueByKey("instance"), float))
 		}
 		// check for an error
 		if result.Err() != nil {
@@ -109,26 +105,14 @@ union(tables: [ First, Last])
 	return priorityMap, nil
 }
 
-var int64Type = reflect.TypeOf(int64(0))
+var floatType = reflect.TypeOf(float64(0))
 
-func getInt32(unk interface{}) (int32, error) {
+func getFloat(unk interface{}) (float64, error) {
 	v := reflect.ValueOf(unk)
 	v = reflect.Indirect(v)
-	if !v.Type().ConvertibleTo(int64Type) {
-		return 0, fmt.Errorf("cannot convert %v to int64", v.Type())
+	if !v.Type().ConvertibleTo(floatType) {
+		return 0, fmt.Errorf("cannot convert %v to float64", v.Type())
 	}
-	fv := v.Convert(int64Type)
-	return int32(fv.Int()), nil
-}
-
-var stringType = reflect.TypeOf(string(0))
-
-func getString(unk interface{}) (string, error) {
-	v := reflect.ValueOf(unk)
-	v = reflect.Indirect(v)
-	if !v.Type().ConvertibleTo(int64Type) {
-		return "", fmt.Errorf("cannot convert %v to string", v.Type())
-	}
-	fv := v.Convert(stringType)
-	return fv.String(), nil
+	fv := v.Convert(floatType)
+	return fv.Float(), nil
 }
