@@ -6,6 +6,8 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"main/pkg/commons"
 	"reflect"
 	"strings"
@@ -47,29 +49,118 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 	var priorityMap = make(map[string]int32)
 
-	result, err := queryAPI.Query(context.Background(), `import "math"
+	query := fmt.Sprintf(`import "math"
+	`)
 
-First = from(bucket: "doctorado")
-  |> range(start: -20m, stop: -10m)
-  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
-  |> filter(fn: (r) => r["device"] == "eth0")
-  |> group(columns: ["instance"], mode:"by")
-  |> keep(columns: ["instance", "_value"])
-  |> first()
+	if !metricsParams.IsSecondLevel {
+		switch metricsParams.Operation {
+		case "first", "last", "max", "min", "mean", "median", "sum", "spread":
+			query += fmt.Sprintf(`from(bucket: "%s"
+		|> range(start: %s, stop: %s)
+		|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+		|> filter(fn: (r) => r["_field"] == "%s")`, dbConnectionParams.Bucket, metricsParams.StartDate, metricsParams.EndDate, metricsParams.MetricName)
 
-Last = from(bucket: "doctorado")
-  |> range(start: -1h, stop: now())
-  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
-  |> filter(fn: (r) => r["device"] == "eth0")
-  |> group(columns: [ "instance"], mode:"by")
-  |> keep(columns: ["instance", "_value"])
-  |> last()
+			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
+				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+			}
 
-union(tables: [ First, Last])
-|> difference()
-|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))`)
+			query += fmt.Sprintf(`|> group(columns: ["instance"], mode:"by")
+		|> keep(columns: ["instance", "_value"])
+		|> %s()
+		|> yield(name: "%s")`, metricsParams.Operation, metricsParams.Operation)
+
+		case "difference":
+			query += fmt.Sprintf(`First = from(bucket: "%s")
+				|> range(start: %s, stop: %s)
+				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+				|> filter(fn: (r) => r["_field"] == "%s")`,
+				dbConnectionParams.Bucket, metricsParams.StartDate, metricsParams.EndDate, metricsParams.MetricName)
+
+			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
+				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+			}
+
+			query += fmt.Sprintf(`|> group(columns: ["instance"], mode:"by")
+				|> keep(columns: ["instance", "_value"])
+				|> first()`)
+			query += fmt.Sprintf(`Last = from(bucket: "%s")
+				|> range(start: %s, stop: %s)
+				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+				|> filter(fn: (r) => r["_field"] == "%s")`,
+				dbConnectionParams.Bucket, metricsParams.StartDate, metricsParams.EndDate, metricsParams.MetricName)
+
+			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
+				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+			}
+
+			query += fmt.Sprintf(`|> group(columns: ["instance"], mode:"by")
+				|> keep(columns: ["instance", "_value"])
+				|> last()
+				|> union(tables: [ First, Last])
+				|> difference()
+				|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))`)
+		}
+	} else {
+		switch metricsParams.Operation {
+		case "first", "last", "max", "min", "mean", "median", "sum", "spread":
+			query += fmt.Sprintf(`%s = from(bucket: "%s"
+		|> range(start: %s, stop: %s)
+		|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+		|> filter(fn: (r) => r["_field"] == "%s")`, cases.Title(language.English, cases.Compact).String(metricsParams.SecondLevelOperation), dbConnectionParams.Bucket, metricsParams.StartDate, metricsParams.EndDate, metricsParams.MetricName)
+
+			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
+				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+			}
+
+			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
+		|> keep(columns: ["instance", "%s",_value"])
+		|> %s()
+		|> yield(name: "%s")`, metricsParams.SecondLevelGroup, metricsParams.SecondLevelGroup, metricsParams.SecondLevelOperation, metricsParams.SecondLevelOperation)
+			query += fmt.Sprintf(`%s
+			|> group(columns: [ "instance"], mode:"by")
+			|> keep(columns: ["instance","_value"])
+			|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
+			|> %s(column: "_value")`, cases.Title(language.English, cases.Compact).String(metricsParams.SecondLevelOperation), metricsParams.Operation)
+
+		case "difference":
+			query += fmt.Sprintf(`First = from(bucket: "%s")
+				|> range(start: %s, stop: %s)
+				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+				|> filter(fn: (r) => r["_field"] == "%s")`,
+				dbConnectionParams.Bucket, metricsParams.StartDate, metricsParams.EndDate, metricsParams.MetricName)
+
+			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
+				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+			}
+
+			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
+				|> keep(columns: ["instance", "%s", "_value"])
+				|> first()`, metricsParams.SecondLevelGroup, metricsParams.SecondLevelGroup)
+			query += fmt.Sprintf(`Last = from(bucket: "%s")
+				|> range(start: %s, stop: %s)
+				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+				|> filter(fn: (r) => r["_field"] == "%s")`,
+				dbConnectionParams.Bucket, metricsParams.StartDate, metricsParams.EndDate, metricsParams.MetricName)
+
+			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
+				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+			}
+
+			query += fmt.Sprintf(`|> group(columns: ["instance", "%s"], mode:"by")
+				|> keep(columns: ["instance", "%s" "_value"])
+				|> last()`, metricsParams.SecondLevelGroup, metricsParams.SecondLevelGroup)
+
+			query += fmt.Sprintf(`|> union(tables: [ First, Last])
+				|> difference()
+				|> group(columns: [ "instance"], mode:"by")
+				|> keep(columns: ["instance","_value"])
+				|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
+				|> %s(column: "_value")`, metricsParams.Operation)
+
+		}
+	}
+
+	result, err := queryAPI.Query(context.Background(), query)
 
 	if err == nil {
 		// Iterate over query response
@@ -97,11 +188,6 @@ union(tables: [ First, Last])
 	}
 	// Ensures background processes finishes
 	client.Close()
-
-	//for _, m := range rowsArray {
-	//	fmt.Println("Node ", m.node, ", metric value ", m.value)
-	//	priorityMap[m.node] = m.rowid
-	//}
 
 	log.Info(fmt.Sprintf("priorityMap %v", priorityMap))
 

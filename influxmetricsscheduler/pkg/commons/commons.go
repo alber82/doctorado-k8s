@@ -9,15 +9,15 @@ import (
 )
 
 type MetricParams struct {
-	MetricName        string
-	StartDate         string
-	EndDate           string
-	Operation         string
-	PriorityOrder     string
-	FilterClause      string
-	IsSecondLevel     string
-	SecondLevelGroup  string
-	SecondLevelSelect string
+	MetricName           string
+	StartDate            string
+	EndDate              string
+	Operation            string
+	PriorityOrder        string
+	FilterClause         string
+	IsSecondLevel        bool
+	SecondLevelGroup     string
+	SecondLevelOperation string
 }
 
 type SchedulerParams struct {
@@ -72,7 +72,7 @@ func lookupEnvOrStringSlice(key string, defaultVal []string) []string {
 	return defaultVal
 }
 
-func lookupEnvOrBool(key string, defaultVal bool) bool {
+func LookupEnvOrBool(key string, defaultVal bool) bool {
 	if val, ok := os.LookupEnv(key); ok {
 		v, err := strconv.ParseBool(val)
 		if err != nil {

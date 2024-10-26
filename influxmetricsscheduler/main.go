@@ -54,7 +54,7 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 	flag.StringVar(&params.MetricParams.Operation, "metric-operation", commons.LookupEnvOrString("METRIC_OPERATION", "difference"), "Operation to get  metrics, example: max,min,avg,...")
 	flag.StringVar(&params.MetricParams.PriorityOrder, "metric-priority-order", commons.LookupEnvOrString("METRIC_PRIORITY_ORDER", "desc"), "how to priority results, example. order asc o desc")
 	flag.StringVar(&params.MetricParams.FilterClause, "metric-filter-clause", commons.LookupEnvOrString("METRIC_FILTER_CLAUSE", ""), "Extra filter clause")
-	flag.StringVar(&params.MetricParams.IsSecondLevel, "metric-is-second-level", commons.LookupEnvOrString("METRIC_IS_SECOND_LEVEL", "false"), "Is second level")
+	flag.BoolVar(&params.MetricParams.IsSecondLevel, "metric-is-second-level", commons.LookupEnvOrBool("METRIC_IS_SECOND_LEVEL", false), "Is second level")
 	flag.StringVar(&params.MetricParams.SecondLevelGroup, "metric-second-level-group", commons.LookupEnvOrString("METRIC_SECOND_LEVEL_GROUP", ""), "Second level group")
 	flag.StringVar(&params.MetricParams.SecondLevelSelect, "metric-second-level-select", commons.LookupEnvOrString("METRIC_SECOND_LEVEL_SELECT", ""), "Second level select")
 
