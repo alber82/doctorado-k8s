@@ -130,7 +130,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 			query += fmt.Sprintf(`%s = from(bucket: "%s"
 	|> range(start: %s, stop: %s)
 	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-	|> filter(fn: (r) => r["_field"] == %s)
+	|> filter(fn: (r) => r["_field"] == "%s")
 `,
 				cases.Title(language.English, cases.Compact).String(metricsParams.SecondLevelOperation),
 				dbConnectionParams.Bucket,
@@ -145,7 +145,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
 	|> keep(columns: ["instance", "%s","_value"])
-	|> %s()
+	|> %s(column: "_value")
 	|> yield(name: "%s")
 `,
 				metricsParams.SecondLevelGroup,
