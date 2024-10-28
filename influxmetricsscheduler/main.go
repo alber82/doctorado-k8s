@@ -56,7 +56,7 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 	flag.StringVar(&params.MetricParams.FilterClause, "metric-filter-clause", commons.LookupEnvOrString("METRIC_FILTER_CLAUSE", ""), "Extra filter clause")
 	flag.BoolVar(&params.MetricParams.IsSecondLevel, "metric-is-second-level", commons.LookupEnvOrBool("METRIC_IS_SECOND_LEVEL", false), "Is second level")
 	flag.StringVar(&params.MetricParams.SecondLevelGroup, "metric-second-level-group", commons.LookupEnvOrString("METRIC_SECOND_LEVEL_GROUP", ""), "Second level group")
-	flag.StringVar(&params.MetricParams.SecondLevelSelect, "metric-second-level-select", commons.LookupEnvOrString("METRIC_SECOND_LEVEL_SELECT", ""), "Second level select")
+	flag.StringVar(&params.MetricParams.SecondLevelOperation, "metric-second-level-operation", commons.LookupEnvOrString("METRIC_SECOND_LEVEL_OPERATION", ""), "Second level select")
 
 	//TimescaleDbParams
 	flag.StringVar(&params.Influxdb.Host, "influxdb-host", commons.LookupEnvOrString("INFLUXDB_HOST", "influxdb-influxdb2.monitoring"), "host to connect to influxdb")

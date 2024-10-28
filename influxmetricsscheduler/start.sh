@@ -20,7 +20,7 @@ echo /scheduler \
        --metric-is-second-level=${METRIC_IS_SECOND_LEVEL:-'false'} \
        --metric-filter-clause="${METRIC_FILTER_CLAUSE:-''}" \
        --metric-second-level-group="${METRIC_SECOND_LEVEL_GROUP:-''}" \
-       --metric-second-level-select="${METRIC_SECOND_LEVEL_SELECT:-''}" \
+       --metric-second-level-operation="${METRIC_SECOND_LEVEL_OPERATION:-''}" \
        --influxdb-host=${INFLUXDB_HOST:-'influxdb-influxdb2.monitoring'} \
        --influxdb-port=${INFLUXDB_PORT:-8086} \
        --influxdb-token=${INFLUXDB_TOKEN:-'klsjdaioqwehrqoikdnmxcq'} \
@@ -40,7 +40,7 @@ echo /scheduler \
   --metric-is-second-level=${METRIC_IS_SECOND_LEVEL:-'false'} \
   --metric-filter-clause=${METRIC_FILTER_CLAUSE:-''} \
   --metric-second-level-group=${METRIC_SECOND_LEVEL_GROUP:-''} \
-  --metric-second-level-select=${METRIC_SECOND_LEVEL_SELECT:-''} \
+  --metric-second-level-operation="${METRIC_SECOND_LEVEL_OPERATION:-''}" \
   --influxdb-host=${INFLUXDB_HOST:-'influxdb-influxdb2.monitoring'} \
   --influxdb-port=${INFLUXDB_PORT:-8086} \
   --influxdb-token=${INFLUXDB_TOKEN:-'klsjdaioqwehrqoikdnmxcq'} \
