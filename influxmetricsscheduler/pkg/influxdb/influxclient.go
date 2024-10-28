@@ -88,7 +88,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
 				query += fmt.Sprintf(`|> filter(%s)
-`, filter)
+`, strings.Replace(filter, "'", "\"", -1))
 			}
 
 			query += fmt.Sprintln(`|> group(columns: ["instance"], mode:"by")
@@ -106,7 +106,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
 				query += fmt.Sprintf(`|> filter(%s)
-`, filter)
+`, strings.Replace(filter, "'", "\"", -1))
 			}
 
 			query += fmt.Sprintf(`|> group(columns: ["instance"], mode:"by")
