@@ -50,7 +50,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 	var priorityMap = make(map[string]int32)
 
 	query := fmt.Sprintf(`import "math"
-	`)
+`)
 
 	if !metricsParams.IsSecondLevel {
 		switch metricsParams.Operation {
@@ -77,9 +77,9 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 		case "difference":
 			query += fmt.Sprintf(`First = from(bucket: "%s") 
-				|> range(start: %s, stop: %s)
-				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-				|> filter(fn: (r) => r["_field"] == "%s")
+	|> range(start: %s, stop: %s)
+	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+	|> filter(fn: (r) => r["_field"] == "%s")
 				`,
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
@@ -91,14 +91,17 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintln(`|> group(columns: ["instance"], mode:"by")
-				|> keep(columns: ["instance", "_value"])
-				|> first()`)
+			query += fmt.Sprintln(`	|> group(columns: ["instance"], mode:"by")
+	|> keep(columns: ["instance", "_value"])
+	|> first()
+	|> yield(name: "first")
+	
+	`)
 
 			query += fmt.Sprintf(`Last = from(bucket: "%s")
-				|> range(start: %s, stop: %s)
-				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-				|> filter(fn: (r) => r["_field"] == "%s")`,
+	|> range(start: %s, stop: %s)
+	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+	|> filter(fn: (r) => r["_field"] == "%s")`,
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
 				metricsParams.EndDate,
@@ -109,12 +112,14 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`|> group(columns: ["instance"], mode:"by")
-				|> keep(columns: ["instance", "_value"])
-				|> last()
-				|> union(tables: [ First, Last])
-				|> difference()
-				|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))`)
+			query += fmt.Sprintf(`	|> group(columns: ["instance"], mode:"by")
+	|> keep(columns: ["instance", "_value"])
+	|> last()
+	|> yield(name: "last")
+	
+	|> union(tables: [First, Last])
+	|> difference()
+	|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))`)
 		}
 	} else {
 		switch metricsParams.Operation {
