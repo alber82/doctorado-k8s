@@ -144,7 +144,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 			}
 
 			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
-	|> keep(columns: ["instance", "%s",_value"])
+	|> keep(columns: ["instance", "%s","_value"])
 	|> %s()
 	|> yield(name: "%s")
 `,
@@ -199,7 +199,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 			}
 
 			query += fmt.Sprintf(`|> group(columns: ["instance", "%s"], mode:"by")
-	|> keep(columns: ["instance", "%s" "_value"])
+	|> keep(columns: ["instance", "%s", "_value"])
 	|> last()
 `,
 				metricsParams.SecondLevelGroup,
