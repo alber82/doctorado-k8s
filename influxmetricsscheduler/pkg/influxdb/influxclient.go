@@ -55,7 +55,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 	if !metricsParams.IsSecondLevel {
 		switch metricsParams.Operation {
 		case "first", "last", "max", "min", "mean", "median", "sum", "spread":
-			query += fmt.Sprintf(`from(bucket: "%s"
+			query += fmt.Sprintf(`from(bucket: "%s")
 	|> range(start: %s, stop: %s)
 	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
 	|> filter(fn: (r) => r["_field"] == "%s")
@@ -128,9 +128,10 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 		switch metricsParams.Operation {
 		case "first", "last", "max", "min", "mean", "median", "sum", "spread":
 			query += fmt.Sprintf(`%s = from(bucket: "%s"
-			|> range(start: %s, stop: %s)
-			|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-			|> filter(fn: (r) => r["_field"] == "%s")`,
+	|> range(start: %s, stop: %s)
+	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+	|> filter(fn: (r) => r["_field"] == %s)
+`,
 				cases.Title(language.English, cases.Compact).String(metricsParams.SecondLevelOperation),
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
@@ -138,23 +139,24 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+				query += fmt.Sprintf(`|> filter(%s)
+`, strings.Replace(filter, "'", "\"", -1))
 			}
 
 			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
-				|> keep(columns: ["instance", "%s",_value"])
-				|> %s()
-				|> yield(name: "%s")`,
+	|> keep(columns: ["instance", "%s",_value"])
+	|> %s()
+	|> yield(name: "%s")`,
 				metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelOperation,
 				metricsParams.SecondLevelOperation)
 
 			query += fmt.Sprintf(`%s
-			|> group(columns: [ "instance"], mode:"by")
-			|> keep(columns: ["instance","_value"])
-			|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
-			|> %s(column: "_value")`,
+	|> group(columns: [ "instance"], mode:"by")
+	|> keep(columns: ["instance","_value"])
+	|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
+	|> %s(column: "_value")`,
 				cases.Title(language.English, cases.Compact).String(metricsParams.SecondLevelOperation),
 				metricsParams.Operation)
 
@@ -169,42 +171,43 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+				query += fmt.Sprintf(`|> filter(%s)
+`, strings.Replace(filter, "'", "\"", -1))
 			}
 
 			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
-				|> keep(columns: ["instance", "%s", "_value"])
-				|> first()`,
+	|> keep(columns: ["instance", "%s", "_value"])
+	|> first()`,
 				metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelGroup)
 
 			query += fmt.Sprintf(`Last = from(bucket: "%s")
-				|> range(start: %s, stop: %s)
-				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-				|> filter(fn: (r) => r["_field"] == "%s")`,
+	|> range(start: %s, stop: %s)
+	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+	|> filter(fn: (r) => r["_field"] == "%s")`,
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
 				metricsParams.EndDate,
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+				query += fmt.Sprintf(`|> filter(%s)
+`, strings.Replace(filter, "'", "\"", -1))
 			}
 
 			query += fmt.Sprintf(`|> group(columns: ["instance", "%s"], mode:"by")
-				|> keep(columns: ["instance", "%s" "_value"])
-				|> last()`,
+	|> keep(columns: ["instance", "%s" "_value"])
+	|> last()`,
 				metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelGroup)
 
-			query += fmt.Sprintf(`|> union(tables: [ First, Last])
-				|> difference()
-				|> group(columns: [ "instance"], mode:"by")
-				|> keep(columns: ["instance","_value"])
-				|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
-				|> %s(column: "_value")`,
+			query += fmt.Sprintf(`|> union(tables: [First, Last])
+	|> difference()
+	|> group(columns: [ "instance"], mode:"by")
+	|> keep(columns: ["instance","_value"])
+	|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
+	|> %s(column: "_value")`,
 				metricsParams.Operation)
-
 		}
 	}
 
