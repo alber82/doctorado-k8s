@@ -111,7 +111,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter(%s)
+				query += fmt.Sprintf(`	|> filter(%s)
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
@@ -139,11 +139,11 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter(%s)
+				query += fmt.Sprintf(`	|> filter(%s)
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
+			query += fmt.Sprintf(`	|> group(columns: ["instance","%s"], mode:"by")
 	|> keep(columns: ["instance", "%s","_value"])
 	|> %s(column: "_value")
 	|> yield(name: "%s")
@@ -173,11 +173,11 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter(%s)
+				query += fmt.Sprintf(`	|> filter(%s)
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
+			query += fmt.Sprintf(`	|> group(columns: ["instance","%s"], mode:"by")
 	|> keep(columns: ["instance", "%s", "_value"])
 	|> first()
 `, metricsParams.SecondLevelGroup,
@@ -194,24 +194,24 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter(%s)
+				query += fmt.Sprintf(`	|> filter(%s)
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`|> group(columns: ["instance", "%s"], mode:"by")
+			query += fmt.Sprintf(`	|> group(columns: ["instance", "%s"], mode:"by")
 	|> keep(columns: ["instance", "%s", "_value"])
 	|> last()
 `,
 				metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelGroup)
 
-			query += fmt.Sprintf(`|> union(tables: [First, Last])
+			query += fmt.Sprintf(`union(tables: [First, Last])
 	|> difference()
 	|> group(columns: [ "instance"], mode:"by")
 	|> keep(columns: ["instance","_value"])
 	|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
 	|> %s(column: "_value")`,
-				metricsParams.Operation)
+				metricsParams.SecondLevelOperation)
 		}
 	}
 
