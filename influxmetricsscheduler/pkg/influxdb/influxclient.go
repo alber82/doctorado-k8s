@@ -146,7 +146,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
 	|> keep(columns: ["instance", "%s",_value"])
 	|> %s()
-	|> yield(name: "%s")`,
+	|> yield(name: "%s")
+`,
 				metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelOperation,
@@ -162,9 +163,10 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 		case "difference":
 			query += fmt.Sprintf(`First = from(bucket: "%s")
-				|> range(start: %s, stop: %s)
-				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-				|> filter(fn: (r) => r["_field"] == "%s")`,
+	|> range(start: %s, stop: %s)
+	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+	|> filter(fn: (r) => r["_field"] == "%s")
+`,
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
 				metricsParams.EndDate,
@@ -177,14 +179,15 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 			query += fmt.Sprintf(`|> group(columns: ["instance","%s"], mode:"by")
 	|> keep(columns: ["instance", "%s", "_value"])
-	|> first()`,
-				metricsParams.SecondLevelGroup,
+	|> first()
+`, metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelGroup)
 
 			query += fmt.Sprintf(`Last = from(bucket: "%s")
 	|> range(start: %s, stop: %s)
 	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-	|> filter(fn: (r) => r["_field"] == "%s")`,
+	|> filter(fn: (r) => r["_field"] == "%s")
+`,
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
 				metricsParams.EndDate,
@@ -197,7 +200,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 			query += fmt.Sprintf(`|> group(columns: ["instance", "%s"], mode:"by")
 	|> keep(columns: ["instance", "%s" "_value"])
-	|> last()`,
+	|> last()
+`,
 				metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelGroup)
 
