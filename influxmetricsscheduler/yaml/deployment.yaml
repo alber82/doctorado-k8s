@@ -56,7 +56,7 @@ spec:
             - name: METRIC_PRIORITY_ORDER
               value: "desc"
             - name: METRIC_FILTER_CLAUSE
-              value: "fn: (r) => r['device'] == 'eth0'"
+              value: 'fn: (r) => r["device"] == "eth0"'
             - name: METRIC_IS_SECOND_LEVEL
               value: "false"
             - name: INFLUXDB_HOST

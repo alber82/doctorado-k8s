@@ -76,31 +76,42 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.Operation)
 
 		case "difference":
-			query += fmt.Sprintf(`First = from(bucket: "%s") range(start: %s, stop: %s) filter(fn: (r) => r["_measurement"] == "prometheus_remote_write") filter(fn: (r) => r["_field"] == "%s")`,
+			query += fmt.Sprintf(`First = from(bucket: "%s") 
+				|> range(start: %s, stop: %s)
+				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+				|> filter(fn: (r) => r["_field"] == "%s")\n`,
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
 				metricsParams.EndDate,
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(` filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+				query += fmt.Sprintf(`|> filter("%s")\n`, filter)
 			}
 
-			query += fmt.Sprintln(` group(columns: ["instance"], mode:"by") keep(columns: ["instance", "_value"]) first()`)
+			query += fmt.Sprintln(`|> group(columns: ["instance"], mode:"by")
+				|> keep(columns: ["instance", "_value"])
+				|> first()`)
 
-			query += fmt.Sprintf(`Last = from(bucket: "%s") range(start: %s, stop: %s) filter(fn: (r) => r["_measurement"] == "prometheus_remote_write") filter(fn: (r) => r["_field"] == "%s")`,
+			query += fmt.Sprintf(`Last = from(bucket: "%s")
+				|> range(start: %s, stop: %s)
+				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+				|> filter(fn: (r) => r["_field"] == "%s")`,
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
 				metricsParams.EndDate,
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(` filter("%s")`, strings.Replace(filter, "'", "\"", -1))
+				query += fmt.Sprintf(`|> filter("%s")\n`, filter)
 			}
 
-			query += fmt.Sprintf(` group(columns: ["instance"], mode:"by") keep(columns: ["instance", "_value"]) last()`)
-
-			query += fmt.Sprintln(`union(tables: [First, Last]) difference() map(fn: (r) => ({r with _value: math.abs(x: r._value)}))`)
+			query += fmt.Sprintf(`|> group(columns: ["instance"], mode:"by")
+				|> keep(columns: ["instance", "_value"])
+				|> last()
+				|> union(tables: [ First, Last])
+				|> difference()
+				|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))`)
 		}
 	} else {
 		switch metricsParams.Operation {
