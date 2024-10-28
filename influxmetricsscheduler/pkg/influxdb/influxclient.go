@@ -104,9 +104,10 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 		switch metricsParams.Operation {
 		case "first", "last", "max", "min", "mean", "median", "sum", "spread":
 			query += fmt.Sprintf(`%s = from(bucket: "%s"
-		|> range(start: %s, stop: %s)
-		|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-		|> filter(fn: (r) => r["_field"] == "%s")`, cases.Title(language.English, cases.Compact).String(metricsParams.SecondLevelOperation), dbConnectionParams.Bucket, metricsParams.StartDate, metricsParams.EndDate, metricsParams.MetricName)
+			|> range(start: %s, stop: %s)
+			|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+			|> filter(fn: (r) => r["_field"] == "%s")`,
+				cases.Title(language.English, cases.Compact).String(metricsParams.SecondLevelOperation), dbConnectionParams.Bucket, metricsParams.StartDate, metricsParams.EndDate, metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
 				query += fmt.Sprintf(`|> filter("%s")`, strings.Replace(filter, "'", "\"", -1))
@@ -159,6 +160,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 		}
 	}
+
+	log.Info("Query: ", query)
 
 	result, err := queryAPI.Query(context.Background(), query)
 
