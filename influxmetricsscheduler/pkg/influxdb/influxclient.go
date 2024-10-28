@@ -79,14 +79,16 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 			query += fmt.Sprintf(`First = from(bucket: "%s") 
 				|> range(start: %s, stop: %s)
 				|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
-				|> filter(fn: (r) => r["_field"] == "%s")\n`,
+				|> filter(fn: (r) => r["_field"] == "%s")
+				`,
 				dbConnectionParams.Bucket,
 				metricsParams.StartDate,
 				metricsParams.EndDate,
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter("%s")\n`, filter)
+				query += fmt.Sprintf(`|> filter("%s")
+`, filter)
 			}
 
 			query += fmt.Sprintln(`|> group(columns: ["instance"], mode:"by")
@@ -103,7 +105,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.MetricName)
 
 			for _, filter := range strings.Split(metricsParams.FilterClause, ",") {
-				query += fmt.Sprintf(`|> filter("%s")\n`, filter)
+				query += fmt.Sprintf(`|> filter("%s")
+`, filter)
 			}
 
 			query += fmt.Sprintf(`|> group(columns: ["instance"], mode:"by")
