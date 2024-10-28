@@ -127,7 +127,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 	} else {
 		switch metricsParams.Operation {
 		case "first", "last", "max", "min", "mean", "median", "sum", "spread":
-			query += fmt.Sprintf(`%s = from(bucket: "%s"
+			query += fmt.Sprintf(`%s = from(bucket: "%s")
 	|> range(start: %s, stop: %s)
 	|> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
 	|> filter(fn: (r) => r["_field"] == "%s")
