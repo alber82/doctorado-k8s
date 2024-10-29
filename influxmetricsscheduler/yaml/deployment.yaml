@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: operator
+  name: influxdb-scheduler
+  labels:
+    app: influxdb-scheduler
+    component: influxdb-scheduler
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: influxdb-scheduler
+subjects:
+- kind: ServiceAccount
+  name: influxdb-scheduler
+  namespace: operator
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: system:kube-scheduler
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb-scheduler
+  namespace: operator
+  labels:
+    app: influxdb-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: influxdb-scheduler
+  template:
+    metadata:
+      labels:
+        app: influxdb-scheduler
+    spec:
+      serviceAccount: influxdb-scheduler
+      containers:
+        - name: scheduler
+          image: 192.168.1.229:5000/doctorado/influxsdb-scheduler:0.0.0
+          imagePullPolicy: Always
+          env:
+            - name: SCHEDULER_NAME
+              value: "random"
+            - name: METRIC_NAME
+              value: "node_network_receive_bytes_total"
+            - name: METRIC_START_DATE
+              value: "-20m"
+            - name: METRIC_END_DATE
+              value: "now()"
+            - name: METRIC_OPERATION
+              value: "difference"
+            - name: METRIC_PRIORITY_ORDER
+              value: "desc"
+            - name: METRIC_FILTER_CLAUSE
+              value: 'fn: (r) => r["device"] == "eth0"'
+            - name: METRIC_IS_SECOND_LEVEL
+              value: "false"
+            - name: INFLUXDB_HOST
+              value: "influxdb-influxdb2.monitoring"
+            - name: INFLUXDB_PORT
+              value: "80"
+            - name: INFLUXDB_TOKEN
+              value: "klsjdaioqwehrqoikdnmxcq"
+            - name: INFLUXDB_ORGANIZATION
+              value: "uclm"
+            - name: INFLUXDB_BUCKET
+              value: "doctorado"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: FILTERED_NODES
+              value: "master01"

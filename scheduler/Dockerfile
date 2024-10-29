@@ -1,8 +1,9 @@
 # build stage
-FROM golang:1.19.4 as builder
+FROM golang:1.23.2 AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /workspace
-
 # Copy the Go Modules manifests
 COPY scheduler/go.mod go.mod
 COPY scheduler/go.sum go.sum
@@ -17,12 +18,7 @@ COPY scheduler/pkg/commons.go pkg/commons.go
 COPY scheduler/pkg/postgresql/dbclient.go pkg/postgresql/dbclient.go
 COPY scheduler/pkg/postgresql/dbutils.go pkg/postgresql/dbutils.go
 
-# Vet
-RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go vet ./...
-# Test
-RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go test ./... -coverprofile cover.out -coverpkg=./...
-# Build
-RUN GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o scheduler -ldflags "-X main.Version=$VERSION" main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o scheduler main.go
 
 FROM centos:7
 

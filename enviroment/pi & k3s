@@ -1,0 +1,24 @@
+ ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N ""
+
+
+
+
+  https://blog.stonegarden.dev/articles/2024/02/bootstrapping-k3s-with-cilium/#lb-ipam
+
+   helm install cert-manager jetstack/cert-manager
+    --namespace cert-manager --create-namespace  --version v1.13.2 --values cert-manager-config.yaml
+
+
+  K3S_TOKEN=K1004ecb5ba2b86b5a3981c48d527c82929ef13f58594d4fb5ad50cbf590823d1e3::server:d1d5afc3e61ffeec2a92ea491ca20f2c
+  API_SERVER_IP=192.168.1.220
+  API_SERVER_PORT=6443
+  curl -sfL https://get.k3s.io | sh -s - agent \
+    --token "${K3S_TOKEN}" \
+    --server "https://${API_SERVER_IP}:${API_SERVER_PORT}"
+
+  https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.1-preinstalled-server-arm64+raspi.img.xz
+
+
+
+  IMG=ubuntu-24.04.1-preinstalled-server-arm64+raspi.img.xz
+  URL_IMG=https://cdimage.ubuntu.com/releases/24.04/release/${IMG}

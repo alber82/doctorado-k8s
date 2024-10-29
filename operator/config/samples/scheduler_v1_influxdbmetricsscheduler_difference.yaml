@@ -1,0 +1,61 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: influxdbmetricsscheduler
+subjects:
+- kind: ServiceAccount
+  name: influxdbmetricsscheduler
+  namespace: scheduling
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: system:kube-scheduler
+---
+apiVersion: scheduler.uclm.es/v1
+kind: InfluxdbMetricsScheduler
+metadata:
+  labels:
+    app.kubernetes.io/name: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: influxdbmetricsscheduler-sample
+  namespace: scheduling
+spec:
+  image: 192.168.1.229:5000/doctorado/influxdb-scheduler:0.0.0
+  imagePullPolicy: Always
+  instances: 1
+  resources:
+    requests:
+      cpu: "1"
+      memory: "1024Mi"
+    limits:
+      cpu: "1"
+      memory: "1024Mi"
+  healthchecks:
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+    readinessProbe:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 45%
+      maxUnavailable: 35%
+  filterNodes:
+  - master01
+  influxdb:
+    host: influxdb-influxdb2.monitoring
+    port: "80"
+    token: klsjdaioqwehrqoikdnmxcq
+    organization: uclm
+    bucket: doctorado
+  metric:
+    name: "node_network_transmit_bytes_total"
+    startDate: "-20m"
+    endDate: "now()"
+    operation: "difference"
+    priorityOrder: "desc"
+    filters:
+    - "fn: (r) => r['device'] == 'eth0'"
+    isSecondLevel: false
