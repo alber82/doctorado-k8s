@@ -46,11 +46,12 @@ type InfluxdbMetricsSchedulerReconciler struct {
 // +kubebuilder:rbac:groups=scheduler.uclm.es,resources=influxdbmetricsschedulers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=scheduler.uclm.es,resources=influxdbmetricsschedulers/finalizers,verbs=update
 
-// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=configmaps,verbs=create;get;list;patch;update;watch;delete;deletecollection
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=create;get;list;patch;update;watch;delete;deletecollection
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;patch;update;watch
-// +kubebuilder:rbac:groups="",resources=services;serviceaccounts,verbs=get	;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=services;serviceaccounts,verbs=get;list;watch;create;update;patch;delete;deletecollection
 
 // +kubebuilder:rbac:groups=apps,resources=deployments;statefulsets,verbs=get;list;watch;create;update;patch;delete;deletecollection
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterrolebindings,verbs=get;list;watch;create;update;patch;delete;deletecollection
 
 // Annotation for generating RBAC role for writing Events
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch

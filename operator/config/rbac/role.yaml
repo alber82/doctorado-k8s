@@ -30,6 +30,22 @@ rules:
   - ""
   - create
   - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  - scheduler.uclm.es
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
   - list
   - patch
   - update
@@ -49,9 +65,9 @@ rules:
   - update
   - watch
 - apiGroups:
-  - scheduler.uclm.es
+  - rbac.authorization.k8s.io
   resources:
-  - configmaps
+  - clusterrolebindings
   verbs:
   - create
   - delete
