@@ -5,13 +5,12 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: influxdbmetricsscheduler
-  namespace: operator
+  namespace: scheduling
 roleRef:
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
   name: system:kube-scheduler
 ---
-
 apiVersion: scheduler.uclm.es/v1
 kind: InfluxdbMetricsScheduler
 metadata:
@@ -19,8 +18,9 @@ metadata:
     app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
   name: influxdbmetricsscheduler
+  namespace: scheduling
 spec:
-  image: localhost:5000/doctorado/scheduler:0.0.0
+  image: 192.168.1.229:5000/doctorado/influxdb-scheduler:0.0.0
   imagePullPolicy: Always
   instances: 1
   resources:
@@ -46,7 +46,7 @@ spec:
   - master01
   influxdb:
     host: influxdb-influxdb2.monitoring
-    port: "5432"
+    port: "80"
     token: klsjdaioqwehrqoikdnmxcq
     organization: uclm
     bucket: doctorado

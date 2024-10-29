@@ -146,16 +146,23 @@ func main() {
 		os.Exit(1)
 	}
 
+	logMetricScheduler := ctrl.Log.WithName("controllers").WithName("TsMetricScheduler")
+
 	if err = (&controllers.TsMetricsSchedulerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Log:      logMetricScheduler,
+		Recorder: mgr.GetEventRecorderFor("tsmetricscheduler-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "TsMetricsScheduler")
 		os.Exit(1)
 	}
+	logInfluxdbMetricScheduler := ctrl.Log.WithName("controllers").WithName("InfluxdbMetricsScheduler")
 	if err = (&influxdbmetricsscheduler.InfluxdbMetricsSchedulerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Log:      logInfluxdbMetricScheduler,
+		Recorder: mgr.GetEventRecorderFor("influxdbmetricscheduler-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "InfluxdbMetricsScheduler")
 		os.Exit(1)
