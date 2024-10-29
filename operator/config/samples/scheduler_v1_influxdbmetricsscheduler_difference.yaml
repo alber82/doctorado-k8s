@@ -40,7 +40,7 @@ spec:
     name: "node_network_transmit_bytes_total"
     startDate: "-20m"
     endDate: "now()"
-    operation: "spread"
+    operation: "difference"
     priorityOrder: "desc"
     filters:
     - "fn: (r) => r['device'] == 'eth0'"

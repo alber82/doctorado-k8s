@@ -37,11 +37,14 @@ spec:
     organization: uclm
     bucket: doctorado
   metric:
-    name: "node_network_transmit_bytes_total"
+    name: "node_cpu_seconds_total"
     startDate: "-20m"
     endDate: "now()"
-    operation: "spread"
+    operation: "sum"
     priorityOrder: "desc"
     filters:
-    - "fn: (r) => r['device'] == 'eth0'"
-    isSecondLevel: false
+    - "filter(fn: (r) => r['mode'] == 'user')"
+    isSecondLevel: true
+    secondLevelOperation: "first"
+    secondLevelGroup: "cpu"
+
