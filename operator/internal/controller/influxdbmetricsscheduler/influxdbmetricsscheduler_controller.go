@@ -121,15 +121,15 @@ func (r *InfluxdbMetricsSchedulerReconciler) Reconcile(ctx context.Context, req 
 		}, err
 	}
 
-	_, err = r.createOrUpdateClusterRoleBinding(ctx, &influxdbMetricsScheduler, log, labels)
-
-	if err != nil {
-		log.Error(err, "There was an error on create/update cluster role binding")
-		return ctrl.Result{
-			Requeue:      true,
-			RequeueAfter: ReconciliationOnError,
-		}, err
-	}
+	//_, err = r.createOrUpdateClusterRoleBinding(ctx, &influxdbMetricsScheduler, log, labels)
+	//
+	//if err != nil {
+	//	log.Error(err, "There was an error on create/update cluster role binding")
+	//	return ctrl.Result{
+	//		Requeue:      true,
+	//		RequeueAfter: ReconciliationOnError,
+	//	}, err
+	//}
 
 	_, err = r.createOrUpdateDeployment(ctx, &influxdbMetricsScheduler, log, labels)
 

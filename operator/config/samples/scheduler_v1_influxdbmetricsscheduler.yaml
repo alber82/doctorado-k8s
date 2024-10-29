@@ -1,3 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: influxdbmetricsscheduler-sample
+subjects:
+- kind: ServiceAccount
+  name: influxdbmetricsscheduler-sample
+  namespace: operator
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: system:kube-scheduler
+---
+
 apiVersion: scheduler.uclm.es/v1
 kind: InfluxdbMetricsScheduler
 metadata:
