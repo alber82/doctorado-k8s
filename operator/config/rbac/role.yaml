@@ -64,6 +64,7 @@ rules:
 - apiGroups:
   - scheduler.uclm.es
   resources:
+  - influxdbmetricsschedulers
   - tsmetricsschedulers
   verbs:
   - create
@@ -76,12 +77,14 @@ rules:
 - apiGroups:
   - scheduler.uclm.es
   resources:
+  - influxdbmetricsschedulers/finalizers
   - tsmetricsschedulers/finalizers
   verbs:
   - update
 - apiGroups:
   - scheduler.uclm.es
   resources:
+  - influxdbmetricsschedulers/status
   - tsmetricsschedulers/status
   verbs:
   - get

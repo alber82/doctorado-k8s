@@ -42,9 +42,9 @@ type InfluxdbMetricsSchedulerReconciler struct {
 	Scheme   *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=tsmetricsschedulers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=tsmetricsschedulers/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=tsmetricsschedulers/finalizers,verbs=update
+// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=influxdbmetricsschedulers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=influxdbmetricsschedulers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=scheduler.uclm.es,resources=influxdbmetricsschedulers/finalizers,verbs=update
 
 // +kubebuilder:rbac:groups=scheduler.uclm.es,resources=configmaps,verbs=create;get;list;patch;update;watch;delete;deletecollection
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;patch;update;watch
