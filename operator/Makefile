@@ -28,7 +28,8 @@ NAMESPACE ?= keos-core
 
 # Images Config
 IMG_OPERATOR ?= ${IMG_REPO}/$(NAME):${VERSION}
-IMG_TSMETRICSSCHEDULER ?= ${IMG_REPO}/tsscheduler:${VERSION}
+IMG_TSMETRICSSCHEDULER ?= ${IMG_REPO}/ts-scheduler:${VERSION}
+IMG_INFLUXMETRICSSCHEDULER ?= ${IMG_REPO}/influxdb-scheduler:${VERSION}
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
@@ -98,7 +99,7 @@ build: manifests generate fmt vet ## Build manager binary.
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/main.go --watch-namespaces=$(WATCH_NAMESPACE) --img-tsmetricsscheduler=$(IMG_TSMETRICSSCHEDULER)
+	go run ./cmd/main.go --watch-namespaces=$(WATCH_NAMESPACE) --img-tsmetricsscheduler=$(IMG_TSMETRICSSCHEDULER) --img-influxmetricsscheduler=$(IMG_INFLUXMETRICSSCHEDULER)
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.

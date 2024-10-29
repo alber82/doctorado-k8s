@@ -20,7 +20,9 @@ import (
 	"crypto/tls"
 	"flag"
 	"os"
-	"scheduler-operator/internal/controller/tsmetricscheduler"
+	"scheduler-operator/internal/controller/influxdbmetricsscheduler"
+
+	controllers "scheduler-operator/internal/controller/tsmetricscheduler"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -149,6 +151,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "TsMetricsScheduler")
+		os.Exit(1)
+	}
+	if err = (&influxdbmetricsscheduler.InfluxdbMetricsSchedulerReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "InfluxdbMetricsScheduler")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
