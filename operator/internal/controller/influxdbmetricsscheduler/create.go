@@ -159,7 +159,7 @@ func (r *InfluxdbMetricsSchedulerReconciler) createOrUpdateDeployment(ctx contex
 
 		deployment.Spec.Template.Spec = corev1.PodSpec{
 			ServiceAccountName: influxdbMetricsScheduler.Name,
-			Hostname:           "influxdbMetricsScheduler",
+			Hostname:           "influxdbmetricsscheduler",
 			Subdomain:          influxdbMetricsScheduler.Name,
 			Containers: []corev1.Container{
 				{
