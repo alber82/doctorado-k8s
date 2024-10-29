@@ -46,7 +46,7 @@ spec:
   - master01
   influxdb:
     host: influxdb-influxdb2.monitoring
-    port: "5432"
+    port: "80"
     token: klsjdaioqwehrqoikdnmxcq
     organization: uclm
     bucket: doctorado
