@@ -361,6 +361,7 @@ func (s *Scheduler) findBestNode(priorities map[string]int64) string {
 	var bestNode string
 
 	if s.schedulerParams.MetricParams.PriorityOrder == "asc" {
+		objectiveP = 0
 		for node, p := range priorities {
 			if p > objectiveP {
 				objectiveP = p
@@ -368,6 +369,8 @@ func (s *Scheduler) findBestNode(priorities map[string]int64) string {
 			}
 		}
 	} else {
+		int64Max := int64(1<<63 - 1)
+		objectiveP = int64Max
 		for node, p := range priorities {
 			if p < objectiveP {
 				objectiveP = p
