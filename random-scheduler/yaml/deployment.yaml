@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: random-scheduler
+  labels:
+    app: random-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: random-scheduler
+  template:
+    metadata:
+      labels:
+        app: random-scheduler
+    spec:
+      serviceAccount: random-scheduler
+      containers:
+        - name: random-scheduler
+          image: localhost:5000/albertogomez/random-scheduler:0.0.0
+          imagePullPolicy: Always
+          env:
+            - name: SCHEDULER_NAME
+              value: "random-scheduler"
+          resources:
+            limits:
+              cpu: 256m
+              memory: 256Mi
+            limits:
+              cpu: 256m
+              memory: 256Mi
