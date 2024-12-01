@@ -105,11 +105,11 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 		dbClient:        databaseClient,
 		clientset:       clientset,
 		podQueue:        podQueue,
-		nodeLister:      initInformers(clientset, podQueue, quit),
+		nodeLister:      initInformers(clientset, podQueue, quit, params.SchedulerName),
 	}
 }
 
-func initInformers(clientset *kubernetes.Clientset, podQueue chan *v1.Pod, quit chan struct{}) listersv1.NodeLister {
+func initInformers(clientset *kubernetes.Clientset, podQueue chan *v1.Pod, quit chan struct{}, schedulerName string) listersv1.NodeLister {
 	factory := informers.NewSharedInformerFactory(clientset, 0)
 
 	nodeInformer := factory.Core().V1().Nodes()
@@ -132,7 +132,7 @@ func initInformers(clientset *kubernetes.Clientset, podQueue chan *v1.Pod, quit 
 				log.Println("this is not a pod")
 				return
 			}
-			if pod.Spec.NodeName == "" && pod.Spec.SchedulerName == os.Getenv("SCHEDULER_NAME") {
+			if pod.Spec.NodeName == "" && pod.Spec.SchedulerName == schedulerName {
 				podQueue <- pod
 			}
 		},

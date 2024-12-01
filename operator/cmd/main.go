@@ -20,6 +20,8 @@ import (
 	"crypto/tls"
 	"flag"
 	"os"
+	"scheduler-operator/internal/controller/randomscheduler"
+
 	"scheduler-operator/internal/controller/influxdbmetricsscheduler"
 
 	controllers "scheduler-operator/internal/controller/tsmetricscheduler"
@@ -165,6 +167,17 @@ func main() {
 		Recorder: mgr.GetEventRecorderFor("influxdbmetricscheduler-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "InfluxdbMetricsScheduler")
+		os.Exit(1)
+	}
+	logRandomScheduler := ctrl.Log.WithName("controllers").WithName("RandomScheduler")
+
+	if err = (&randomscheduler.RandomSchedulerReconciler{
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Log:      logRandomScheduler,
+		Recorder: mgr.GetEventRecorderFor("randomscheduler-controller"),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "RandomScheduler")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

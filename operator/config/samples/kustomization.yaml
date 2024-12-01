@@ -2,4 +2,5 @@
 resources:
 - scheduler_v1_tsmetricsscheduler.yaml
 - scheduler_v1_influxdbmetricsscheduler.yaml
+- scheduler_v1_randomscheduler.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples
