@@ -1,15 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"log"
-	"math/rand"
-	"os"
-	"time"
-
 	"context"
 	"errors"
+	"flag"
+	"fmt"
+	"github.com/google/go-cmp/cmp"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -19,6 +16,11 @@ import (
 	listersv1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	"math/rand"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const schedulerName = "metricscheduler"
@@ -26,15 +28,46 @@ const schedulerName = "metricscheduler"
 type predicateFunc func(node *v1.Node, pod *v1.Pod) bool
 type priorityFunc func(node *v1.Node, pod *v1.Pod) int
 
+type SchedulerParams struct {
+	SchedulerName string
+	Timeout       int
+	LogLevel      string
+	FilteredNodes string
+}
+
 type Scheduler struct {
-	clientset  *kubernetes.Clientset
-	podQueue   chan *v1.Pod
-	nodeLister listersv1.NodeLister
-	predicates []predicateFunc
-	priorities []priorityFunc
+	clientset       *kubernetes.Clientset
+	podQueue        chan *v1.Pod
+	schedulerParams SchedulerParams
+	nodeLister      listersv1.NodeLister
+	predicates      []predicateFunc
+	priorities      []priorityFunc
 }
 
 func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
+
+	log.SetFormatter(&log.JSONFormatter{})
+	var params = SchedulerParams{}
+
+	flag.StringVar(&params.SchedulerName, "scheduler-name", LookupEnvOrString("SCHEDULER_NAME", "random"), "scheduler name.")
+	flag.StringVar(&params.LogLevel, "log-level", LookupEnvOrString("LOG_LEVEL", "info"), "scheduler log level.")
+	flag.StringVar(&params.FilteredNodes, "filtered-nodes", LookupEnvOrString("FILTERED_NODES", ""), "Nodes to filer.")
+	flag.IntVar(&params.Timeout, "timeout", LookupEnvOrInt("TIMEOUT", 20), "Timeout connecting in seconds")
+
+	flag.Parse()
+
+	switch params.LogLevel {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	case "warn":
+		log.SetLevel(log.WarnLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
+	}
+	log.SetOutput(os.Stdout)
+
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -46,9 +79,10 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 	}
 
 	return Scheduler{
-		clientset:  clientset,
-		podQueue:   podQueue,
-		nodeLister: initInformers(clientset, podQueue, quit),
+		schedulerParams: params,
+		clientset:       clientset,
+		podQueue:        podQueue,
+		nodeLister:      initInformers(clientset, podQueue, quit, params.SchedulerName),
 		predicates: []predicateFunc{
 			randomPredicate,
 		},
@@ -58,7 +92,7 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 	}
 }
 
-func initInformers(clientset *kubernetes.Clientset, podQueue chan *v1.Pod, quit chan struct{}) listersv1.NodeLister {
+func initInformers(clientset *kubernetes.Clientset, podQueue chan *v1.Pod, quit chan struct{}, schedulerName string) listersv1.NodeLister {
 	factory := informers.NewSharedInformerFactory(clientset, 0)
 
 	nodeInformer := factory.Core().V1().Nodes()
@@ -81,7 +115,7 @@ func initInformers(clientset *kubernetes.Clientset, podQueue chan *v1.Pod, quit 
 				log.Println("this is not a pod")
 				return
 			}
-			if pod.Spec.NodeName == "" && pod.Spec.SchedulerName == os.Getenv("SCHEDULER_NAME") {
+			if pod.Spec.NodeName == "" && pod.Spec.SchedulerName == schedulerName {
 				podQueue <- pod
 			}
 		},
@@ -94,7 +128,7 @@ func initInformers(clientset *kubernetes.Clientset, podQueue chan *v1.Pod, quit 
 func main() {
 	fmt.Println("I'm a scheduler!")
 
-	rand.Seed(time.Now().Unix())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	podQueue := make(chan *v1.Pod, 300)
 	defer close(podQueue)
@@ -167,9 +201,15 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 		return "", err
 	}
 
-	filteredNodesSlice := []string{"tfm-dev", "tfm-dev-m02"}
+	var nodesToInspect []*v1.Node
 
-	nodesToInspect := s.getNodesToInspect(nodes, filteredNodesSlice)
+	if s.schedulerParams.FilteredNodes != "" {
+		filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
+		nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
+	} else {
+		nodesToInspect = nodes
+	}
+
 	filteredNodes := s.runPredicates(nodesToInspect, pod)
 	if len(filteredNodes) == 0 {
 		return "", errors.New("failed to find node that fits pod")
@@ -204,7 +244,8 @@ func (s *Scheduler) emitEvent(ctx context.Context, p *v1.Pod, message string) er
 		FirstTimestamp: metav1.NewTime(timestamp),
 		Type:           "Normal",
 		Source: v1.EventSource{
-			Component: os.Getenv("SCHEDULER_NAME"),
+			//Component: os.Getenv("SCHEDULER_NAME"),
+			Component: s.schedulerParams.SchedulerName,
 		},
 		InvolvedObject: v1.ObjectReference{
 			Kind:      "Pod",
@@ -275,4 +316,22 @@ func (s *Scheduler) findBestNode(priorities map[string]int) string {
 
 func randomPriority(node *v1.Node, pod *v1.Pod) int {
 	return rand.Intn(100)
+}
+
+func LookupEnvOrString(key string, defaultVal string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return val
+	}
+	return defaultVal
+}
+
+func LookupEnvOrInt(key string, defaultVal int) int {
+	if val, ok := os.LookupEnv(key); ok {
+		v, err := strconv.Atoi(val)
+		if err != nil {
+			log.Error(err, "LookupEnvOrInt", "key", key, "value", val)
+		}
+		return v
+	}
+	return defaultVal
 }
