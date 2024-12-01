@@ -38,7 +38,7 @@ func (databaseClient *DatabaseClient) getConnectionParams() ConnectionParams {
 	return influxConnection
 }
 
-func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricParams) (map[string]int32, error) {
+func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricParams) (map[string]int64, error) {
 	dbConnectionParams := databaseClient.getConnectionParams()
 
 	// Create a new client using an InfluxDB server base URL and an authentication token
@@ -47,7 +47,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 	queryAPI := client.QueryAPI(dbConnectionParams.Organization)
 	log.Info("Connected to InfluxDB")
 
-	var priorityMap = make(map[string]int32)
+	var priorityMap = make(map[string]int64)
 
 	query := fmt.Sprintf(`import "math"
 `)
@@ -232,7 +232,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				return nil, err
 			}
 
-			priorityMap[strings.Split(fmt.Sprintf("%s", result.Record().ValueByKey("instance")), ":")[0]] = int32(float)
+			priorityMap[strings.Split(fmt.Sprintf("%s", result.Record().ValueByKey("instance")), ":")[0]] = int64(float)
 			// Access data
 			log.Info(fmt.Printf("instance: %s  %f\n", result.Record().ValueByKey("instance"), float))
 		}
