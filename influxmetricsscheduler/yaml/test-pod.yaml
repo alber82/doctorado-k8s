@@ -6,10 +6,10 @@ metadata:
   labels:
     name: pod01
 spec:
-  schedulerName: random
+  schedulerName: influxdbmetricsscheduler
   containers:
   - name: pod01
-    image: registry.k8s.io/pause:2.0
+    image: mqlhaha/pause:3.2
     resources:
       requests:
         cpu: 500m

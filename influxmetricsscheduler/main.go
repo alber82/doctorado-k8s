@@ -357,14 +357,25 @@ func (s *Scheduler) fitResourcesPredicate(node *v1.Node, pod *v1.Pod) bool {
 }
 
 func (s *Scheduler) findBestNode(priorities map[string]int32) string {
-	var maxP int32
+	var objectiveP int32
 	var bestNode string
-	for node, p := range priorities {
-		if p > maxP {
-			maxP = p
-			bestNode = node
+
+	if s.schedulerParams.MetricParams.PriorityOrder == "asc" {
+		for node, p := range priorities {
+			if p > objectiveP {
+				objectiveP = p
+				bestNode = node
+			}
+		}
+	} else {
+		for node, p := range priorities {
+			if p < objectiveP {
+				objectiveP = p
+				bestNode = node
+			}
 		}
 	}
+
 	return bestNode
 }
 
