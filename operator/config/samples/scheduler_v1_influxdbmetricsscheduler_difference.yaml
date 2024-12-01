@@ -17,7 +17,7 @@ metadata:
   labels:
     app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
-  name: influxdbmetricsscheduler-sample
+  name: influxdbmetricsscheduler
   namespace: scheduling
 spec:
   image: 192.168.1.229:5000/doctorado/influxdb-scheduler:0.0.0
