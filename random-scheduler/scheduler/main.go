@@ -83,9 +83,9 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 		clientset:       clientset,
 		podQueue:        podQueue,
 		nodeLister:      initInformers(clientset, podQueue, quit, params.SchedulerName),
-		predicates: []predicateFunc{
-			randomPredicate,
-		},
+		//predicates: []predicateFunc{
+		//	randomPredicate,
+		//},
 		priorities: []priorityFunc{
 			randomPriority,
 		},
@@ -270,7 +270,8 @@ func (s *Scheduler) runPredicates(nodes []*v1.Node, pod *v1.Pod) []*v1.Node {
 	//		filteredNodes = append(filteredNodes, node)
 	//	}
 	//}
-	filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
+	fnodes := "master01,worker04,worker05"
+	filteredNodesSlice := strings.Split(fnodes, ",")
 	filteredNodes = s.getNodesToInspect(nodes, filteredNodesSlice)
 
 	log.Println("nodes that fit:")
