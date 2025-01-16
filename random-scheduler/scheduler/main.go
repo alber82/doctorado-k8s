@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
@@ -202,19 +201,15 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 	}
 
 	var nodesToInspect []*v1.Node
+	a := "master01,worker04,worker05"
+	filteredNodesSlice := strings.Split(a, ",")
+	nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
 
-	if s.schedulerParams.FilteredNodes != "" {
-		filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
-		nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
-	} else {
-		nodesToInspect = nodes
-	}
-
-	filteredNodes := s.runPredicates(nodesToInspect, pod)
-	if len(filteredNodes) == 0 {
-		return "", errors.New("failed to find node that fits pod")
-	}
-	priorities := s.prioritize(filteredNodes, pod)
+	//filteredNodes := s.runPredicates(nodesToInspect, pod)
+	//if len(filteredNodes) == 0 {
+	//	return "", errors.New("failed to find node that fits pod")
+	//}
+	priorities := s.prioritize(nodesToInspect, pod)
 	return s.findBestNode(priorities), nil
 }
 
