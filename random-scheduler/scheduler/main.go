@@ -51,7 +51,7 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 
 	flag.StringVar(&params.SchedulerName, "scheduler-name", LookupEnvOrString("SCHEDULER_NAME", "random"), "scheduler name.")
 	flag.StringVar(&params.LogLevel, "log-level", LookupEnvOrString("LOG_LEVEL", "info"), "scheduler log level.")
-	flag.StringVar(&params.FilteredNodes, "filtered-nodes", LookupEnvOrString("FILTERED_NODES", ""), "Nodes to filer.")
+	flag.StringVar(&params.FilteredNodes, "filtered-nodes", LookupEnvOrString("FILTERED_NODES", "master01,worker04,worker05"), "Nodes to filter.")
 	flag.IntVar(&params.Timeout, "timeout", LookupEnvOrInt("TIMEOUT", 20), "Timeout connecting in seconds")
 
 	flag.Parse()
