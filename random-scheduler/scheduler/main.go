@@ -174,11 +174,12 @@ func (s *Scheduler) ScheduleOne() {
 
 func (s *Scheduler) getNodesToInspect(nodes []*v1.Node, userFilteredNodes []string) []*v1.Node {
 	filteredNodes := make([]*v1.Node, 0)
-
+	log.Println("userFilteredNodes", userFilteredNodes)
 	for _, node := range nodes {
 		var filter = false
 		for _, userNodes := range userFilteredNodes {
 			if cmp.Equal(node.Name, userNodes) {
+				log.Println("node to filter: ", node.Name, "userNodes", userNodes)
 				filter = true
 			}
 		}
