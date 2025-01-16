@@ -204,7 +204,7 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 	}
 
 	var nodesToInspect []*v1.Node
-
+	s.schedulerParams.FilteredNodes = "master01,worker04,worker05"
 	if s.schedulerParams.FilteredNodes != "" {
 		log.Println("filtered nodes: ", s.schedulerParams.FilteredNodes)
 		filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
