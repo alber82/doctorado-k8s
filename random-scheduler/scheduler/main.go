@@ -180,6 +180,8 @@ func (s *Scheduler) getNodesToInspect(nodes []*v1.Node, userFilteredNodes []stri
 		var filter = false
 		for _, userNodes := range userFilteredNodes {
 			if cmp.Equal(node.Name, userNodes) {
+
+				log.Println("node to inspect: ", node.Name, "user node: ", userNodes)
 				filter = true
 			}
 		}
@@ -204,6 +206,7 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 	var nodesToInspect []*v1.Node
 
 	if s.schedulerParams.FilteredNodes != "" {
+		log.Println("filtered nodes: ", s.schedulerParams.FilteredNodes)
 		filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
 		nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
 	} else {

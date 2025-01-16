@@ -44,3 +44,5 @@ spec:
       maxUnavailable: 35%
   filterNodes:
   - master01
+  - worker04
+  - worker05
