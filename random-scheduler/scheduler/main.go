@@ -19,6 +19,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -50,7 +51,7 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 
 	flag.StringVar(&params.SchedulerName, "scheduler-name", LookupEnvOrString("SCHEDULER_NAME", "random"), "scheduler name.")
 	flag.StringVar(&params.LogLevel, "log-level", LookupEnvOrString("LOG_LEVEL", "info"), "scheduler log level.")
-	flag.StringVar(&params.FilteredNodes, "filtered-nodes", LookupEnvOrString("FILTERED_NODES", "master01,worker04,worker05"), "Nodes to filter.")
+	flag.StringVar(&params.FilteredNodes, "filtered-nodes", LookupEnvOrString("FILTERED_NODES", ""), "Nodes to filer.")
 	flag.IntVar(&params.Timeout, "timeout", LookupEnvOrInt("TIMEOUT", 20), "Timeout connecting in seconds")
 
 	flag.Parse()
@@ -174,13 +175,11 @@ func (s *Scheduler) ScheduleOne() {
 
 func (s *Scheduler) getNodesToInspect(nodes []*v1.Node, userFilteredNodes []string) []*v1.Node {
 	filteredNodes := make([]*v1.Node, 0)
-	log.Println("aaaa")
+
 	for _, node := range nodes {
 		var filter = false
 		for _, userNodes := range userFilteredNodes {
 			if cmp.Equal(node.Name, userNodes) {
-
-				log.Println("node to inspect: ", node.Name, "user node: ", userNodes)
 				filter = true
 			}
 		}
@@ -203,17 +202,13 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 	}
 
 	var nodesToInspect []*v1.Node
-	//s.schedulerParams.FilteredNodes = "master01,worker04,worker05"
-	//if s.schedulerParams.FilteredNodes != "" {
-	//	log.Println("filtered nodes: ", s.schedulerParams.FilteredNodes)
-	//	filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
-	//	nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
-	//} else {
-	//	nodesToInspect = nodes
-	//}
 
-	i := []string{"master01", "worker04", "worker05"}
-	nodesToInspect = s.getNodesToInspect(nodes, i)
+	if s.schedulerParams.FilteredNodes != "" {
+		filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
+		nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
+	} else {
+		nodesToInspect = nodes
+	}
 
 	filteredNodes := s.runPredicates(nodesToInspect, pod)
 	if len(filteredNodes) == 0 {
@@ -270,13 +265,14 @@ func (s *Scheduler) emitEvent(ctx context.Context, p *v1.Pod, message string) er
 
 func (s *Scheduler) runPredicates(nodes []*v1.Node, pod *v1.Pod) []*v1.Node {
 	filteredNodes := make([]*v1.Node, 0)
-	for _, node := range nodes {
-		if s.predicatesApply(node, pod) {
-			if node.Name != "master01" && node.Name != "worker04" && node.Name != "worker05" {
-				filteredNodes = append(filteredNodes, node)
-			}
-		}
-	}
+	//for _, node := range nodes {
+	//	if s.predicatesApply(node, pod) {
+	//		filteredNodes = append(filteredNodes, node)
+	//	}
+	//}
+	filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
+	filteredNodes = s.getNodesToInspect(nodes, filteredNodesSlice)
+
 	log.Println("nodes that fit:")
 	for _, n := range filteredNodes {
 		log.Println(n.Name)
