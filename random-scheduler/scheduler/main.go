@@ -272,7 +272,9 @@ func (s *Scheduler) runPredicates(nodes []*v1.Node, pod *v1.Pod) []*v1.Node {
 	filteredNodes := make([]*v1.Node, 0)
 	for _, node := range nodes {
 		if s.predicatesApply(node, pod) {
-			filteredNodes = append(filteredNodes, node)
+			if node.Name != "master01" && node.Name != "worker04" && node.Name != "worker05" {
+				filteredNodes = append(filteredNodes, node)
+			}
 		}
 	}
 	log.Println("nodes that fit:")
