@@ -83,9 +83,9 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 		clientset:       clientset,
 		podQueue:        podQueue,
 		nodeLister:      initInformers(clientset, podQueue, quit, params.SchedulerName),
-		//predicates: []predicateFunc{
-		//	randomPredicate,
-		//},
+		predicates: []predicateFunc{
+			randomPredicate,
+		},
 		priorities: []priorityFunc{
 			randomPriority,
 		},
@@ -265,15 +265,11 @@ func (s *Scheduler) emitEvent(ctx context.Context, p *v1.Pod, message string) er
 
 func (s *Scheduler) runPredicates(nodes []*v1.Node, pod *v1.Pod) []*v1.Node {
 	filteredNodes := make([]*v1.Node, 0)
-	//for _, node := range nodes {
-	//	if s.predicatesApply(node, pod) {
-	//		filteredNodes = append(filteredNodes, node)
-	//	}
-	//}
-	fnodes := "master01,worker04,worker05"
-	filteredNodesSlice := strings.Split(fnodes, ",")
-	filteredNodes = s.getNodesToInspect(nodes, filteredNodesSlice)
-
+	for _, node := range nodes {
+		if s.predicatesApply(node, pod) {
+			filteredNodes = append(filteredNodes, node)
+		}
+	}
 	log.Println("nodes that fit:")
 	for _, n := range filteredNodes {
 		log.Println(n.Name)
