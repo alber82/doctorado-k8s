@@ -19,7 +19,6 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -175,7 +174,7 @@ func (s *Scheduler) ScheduleOne() {
 
 func (s *Scheduler) getNodesToInspect(nodes []*v1.Node, userFilteredNodes []string) []*v1.Node {
 	filteredNodes := make([]*v1.Node, 0)
-
+	log.Println("aaaa")
 	for _, node := range nodes {
 		var filter = false
 		for _, userNodes := range userFilteredNodes {
@@ -204,14 +203,17 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 	}
 
 	var nodesToInspect []*v1.Node
-	s.schedulerParams.FilteredNodes = "master01,worker04,worker05"
-	if s.schedulerParams.FilteredNodes != "" {
-		log.Println("filtered nodes: ", s.schedulerParams.FilteredNodes)
-		filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
-		nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
-	} else {
-		nodesToInspect = nodes
-	}
+	//s.schedulerParams.FilteredNodes = "master01,worker04,worker05"
+	//if s.schedulerParams.FilteredNodes != "" {
+	//	log.Println("filtered nodes: ", s.schedulerParams.FilteredNodes)
+	//	filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
+	//	nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
+	//} else {
+	//	nodesToInspect = nodes
+	//}
+
+	i := []string{"master01", "worker04", "worker05"}
+	nodesToInspect = s.getNodesToInspect(nodes, i)
 
 	filteredNodes := s.runPredicates(nodesToInspect, pod)
 	if len(filteredNodes) == 0 {
