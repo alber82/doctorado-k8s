@@ -82,12 +82,6 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 		clientset:       clientset,
 		podQueue:        podQueue,
 		nodeLister:      initInformers(clientset, podQueue, quit, params.SchedulerName),
-		predicates: []predicateFunc{
-			randomPredicate,
-		},
-		priorities: []priorityFunc{
-			randomPriority,
-		},
 	}
 }
 
@@ -204,7 +198,7 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 	var nodesToInspect []*v1.Node
 	a := "master01,worker04,worker05"
 	filteredNodesSlice := strings.Split(a, ",")
-	nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
+	nodesToInspect = s.getNodesToInspect2(nodes, filteredNodesSlice)
 
 	//filteredNodes := s.runPredicates(nodesToInspect, pod)
 	//if len(filteredNodes) == 0 {
@@ -212,6 +206,31 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 	//}
 	priorities := s.prioritize(nodesToInspect, pod)
 	return s.findBestNode(priorities), nil
+}
+
+func (s *Scheduler) getNodesToInspect2(nodes []*v1.Node, userFilteredNodes []string) []*v1.Node {
+	filteredNodes := make([]*v1.Node, 0)
+	log.Println("userFilteredNodes", userFilteredNodes)
+
+	for _, node := range nodes {
+		var filter = false
+		for _, userNodes := range userFilteredNodes {
+			log.Println("node to filter: ", node.Name, "userNodes", userNodes)
+			if cmp.Equal(node.Name, userNodes) {
+				filter = true
+			}
+		}
+		if !filter {
+			filteredNodes = append(filteredNodes, node)
+		}
+
+	}
+
+	log.Println("nodes to inspect: ")
+	for _, n := range filteredNodes {
+		log.Println(n.Name)
+	}
+	return filteredNodes
 }
 
 func (s *Scheduler) bindPod(ctx context.Context, p *v1.Pod, node string) error {
