@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
@@ -82,6 +83,12 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 		clientset:       clientset,
 		podQueue:        podQueue,
 		nodeLister:      initInformers(clientset, podQueue, quit, params.SchedulerName),
+		predicates: []predicateFunc{
+			randomPredicate,
+		},
+		priorities: []priorityFunc{
+			randomPriority,
+		},
 	}
 }
 
@@ -168,12 +175,11 @@ func (s *Scheduler) ScheduleOne() {
 
 func (s *Scheduler) getNodesToInspect(nodes []*v1.Node, userFilteredNodes []string) []*v1.Node {
 	filteredNodes := make([]*v1.Node, 0)
-	log.Println("userFilteredNodes", userFilteredNodes)
+
 	for _, node := range nodes {
 		var filter = false
 		for _, userNodes := range userFilteredNodes {
 			if cmp.Equal(node.Name, userNodes) {
-				log.Println("node to filter: ", node.Name, "userNodes", userNodes)
 				filter = true
 			}
 		}
@@ -196,41 +202,20 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 	}
 
 	var nodesToInspect []*v1.Node
-	a := "master01,worker04,worker05"
-	filteredNodesSlice := strings.Split(a, ",")
-	nodesToInspect = s.getNodesToInspect2(nodes, filteredNodesSlice)
+
+	if s.schedulerParams.FilteredNodes != "" {
+		filteredNodesSlice := strings.Split(s.schedulerParams.FilteredNodes, ",")
+		nodesToInspect = s.getNodesToInspect(nodes, filteredNodesSlice)
+	} else {
+		nodesToInspect = nodes
+	}
 
 	//filteredNodes := s.runPredicates(nodesToInspect, pod)
-	//if len(filteredNodes) == 0 {
-	//	return "", errors.New("failed to find node that fits pod")
-	//}
+	if len(nodesToInspect) == 0 {
+		return "", errors.New("failed to find node that fits pod")
+	}
 	priorities := s.prioritize(nodesToInspect, pod)
 	return s.findBestNode(priorities), nil
-}
-
-func (s *Scheduler) getNodesToInspect2(nodes []*v1.Node, userFilteredNodes []string) []*v1.Node {
-	filteredNodes := make([]*v1.Node, 0)
-	log.Println("userFilteredNodes", userFilteredNodes)
-
-	for _, node := range nodes {
-		var filter = false
-		for _, userNodes := range userFilteredNodes {
-			log.Println("node to filter: ", node.Name, "userNodes", userNodes)
-			if cmp.Equal(node.Name, userNodes) {
-				filter = true
-			}
-		}
-		if !filter {
-			filteredNodes = append(filteredNodes, node)
-		}
-
-	}
-
-	log.Println("nodes to inspect: ")
-	for _, n := range filteredNodes {
-		log.Println(n.Name)
-	}
-	return filteredNodes
 }
 
 func (s *Scheduler) bindPod(ctx context.Context, p *v1.Pod, node string) error {
@@ -280,13 +265,11 @@ func (s *Scheduler) emitEvent(ctx context.Context, p *v1.Pod, message string) er
 
 func (s *Scheduler) runPredicates(nodes []*v1.Node, pod *v1.Pod) []*v1.Node {
 	filteredNodes := make([]*v1.Node, 0)
-	//for _, node := range nodes {
-	//	if s.predicatesApply(node, pod) {
-	//		filteredNodes = append(filteredNodes, node)
-	//	}
-	//}
-	log.Println("s.schedulerParams.FilteredNodes", s.schedulerParams.FilteredNodes)
-	filteredNodes = s.getNodesToInspect(nodes, strings.Split(s.schedulerParams.FilteredNodes, ","))
+	for _, node := range nodes {
+		if s.predicatesApply(node, pod) {
+			filteredNodes = append(filteredNodes, node)
+		}
+	}
 	log.Println("nodes that fit:")
 	for _, n := range filteredNodes {
 		log.Println(n.Name)
