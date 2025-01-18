@@ -1,0 +1,2 @@
+kubectl create configmap k6-fibo-test --from-file nginx-fibo-test.js
+kubectl apply -f k6-nginx.yaml
