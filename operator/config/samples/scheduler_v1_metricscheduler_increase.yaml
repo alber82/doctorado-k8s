@@ -23,10 +23,10 @@ spec:
   resources:
     requests:
       cpu: "100m"
-      memory: "256Mi"
+      memory: "128Mi"
     limits:
       cpu: "100m"
-      memory: "256Mi"
+      memory: "128Mi"
   healthchecks:
     livenessProbe:
       initialDelaySeconds: 10

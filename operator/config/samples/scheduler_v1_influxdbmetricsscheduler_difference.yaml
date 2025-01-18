@@ -25,11 +25,11 @@ spec:
   instances: 1
   resources:
     requests:
-      cpu: "1"
-      memory: "1024Mi"
+      cpu: "100m"
+      memory: "128Mi"
     limits:
-      cpu: "1"
-      memory: "1024Mi"
+      cpu: "100m"
+      memory: "128Mi"
   healthchecks:
     livenessProbe:
       initialDelaySeconds: 10
@@ -44,6 +44,8 @@ spec:
       maxUnavailable: 35%
   filterNodes:
   - master01
+  - worker04
+  - worker05
   influxdb:
     host: influxdb-influxdb2.monitoring
     port: "80"

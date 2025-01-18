@@ -210,11 +210,11 @@ func (s *Scheduler) findFit(pod *v1.Pod) (string, error) {
 		nodesToInspect = nodes
 	}
 
-	filteredNodes := s.runPredicates(nodesToInspect, pod)
-	if len(filteredNodes) == 0 {
+	//filteredNodes := s.runPredicates(nodesToInspect, pod)
+	if len(nodesToInspect) == 0 {
 		return "", errors.New("failed to find node that fits pod")
 	}
-	priorities := s.prioritize(filteredNodes, pod)
+	priorities := s.prioritize(nodesToInspect, pod)
 	return s.findBestNode(priorities), nil
 }
 
