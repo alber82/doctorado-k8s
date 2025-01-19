@@ -1,19 +1,19 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-fibonacci
+  name: nginx-server
   namespace: nginx
 spec:
   type: LoadBalancer
   ports:
     - port: 80
   selector:
-    app: nginx-fibonacci
+    app: nginx-server
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-fibonacci
+  name: nginx-server
   namespace: nginx
 spec:
   replicas: 2
