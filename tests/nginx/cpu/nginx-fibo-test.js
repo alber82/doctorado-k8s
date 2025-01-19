@@ -11,7 +11,7 @@ const options = {
 export default function
     () {
     let i =randomIntBetween(1, 100)
-    const response = http.get('http://nginx-fibonacci.nginx:8000/next-fibonacci?number=8' + i);
+    const response = http.get('http://nginx-fibonacci.nginx/next-fibonacci?number=8');
 
     check(response,
         {
