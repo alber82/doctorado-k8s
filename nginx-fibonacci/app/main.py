@@ -4,13 +4,12 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
-# Will result in http://127.0.0.1:8000/next-fibonacci?number=x
-@app.get("/next-fibonacci")
+# Will result in http://127.0.0.1:8000/fibonacci?number=x
+@app.get("/fibonacci")
 def read_item(number: int):
 #     return next_fibonacci(number)
      return fibonacci(number)
@@ -28,23 +27,5 @@ def fibonacci(x):
         fib_sequence.append(a)
         a, b = b, a + b
     # Imprimimos la secuencia
-#     print(f"Los primeros {x} números de la sucesión de Fibonacci son:")
+    print("Los primeros {x} números de la sucesión de Fibonacci son: {fib_sequence}" )
     return {"result:" : fib_sequence}
-#
-# def fib(n):
-#     if n == 1:
-#         return [1]
-#     elif n == 2:
-#         return [1, 1]
-#     else:
-#         sub = fib(n - 1)
-#         return sub + [sub[-1] + sub[-2]]
-#
-# def next_fibonacci(n):
-#     fib = [0, 1]
-#     while fib[-1] < n:
-#         fib.append(fib[-1] + fib[-2])
-#     if n in fib:
-#         return {"result" : fib[-1] + fib[-2]}
-#     else:
-#         return {"error" : "Not a fibonacci number"}
