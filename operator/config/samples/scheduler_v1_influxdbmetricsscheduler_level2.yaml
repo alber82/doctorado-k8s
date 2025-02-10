@@ -67,8 +67,11 @@ spec:
     operation: "sum"
     priorityOrder: "desc"
     filters:
-    - "filter(fn: (r) => r['mode'] == 'user')"
+    - "fn: (r) => r['mode'] == 'user'"
     isSecondLevel: true
-    secondLevelOperation: "first"
-    secondLevelGroup: "cpu"
+    secondLevelOperation:
+    - "sum"
+    secondLevelGroup:
+    - "cpu"
+
 

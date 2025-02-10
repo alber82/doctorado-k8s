@@ -71,6 +71,9 @@ spec:
     filters:
     - "fn: (r) => r['mode'] == 'user'"
     isSecondLevel: true
-    secondLevelOperation: "sum"
-    secondLevelGroup: "cpu"
+    secondLevelOperation:
+    - "sum"
+    secondLevelGroup:
+    - "cpu"
+
 
