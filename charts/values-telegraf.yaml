@@ -165,14 +165,14 @@ config:
         paths: ["/receive"]  
         data_format: "prometheusremotewrite"
     - nginx:
-        urls: ["http://nginx-server.nginx/status"]
+        urls: ["http://nginx.nginx/status"]
         tagexclude: ["url"]
         tags:
           instance: "$HOSTNAME"
           node: "$KUBERNETES_NODE_NAME"
           pod: "$KUBERNETES_POD_NAME"
     - http_response:
-        urls: ["http://nginx-server.nginx"]
+        urls: ["http://nginx.nginx"]
         response_timeout: "5s"
         method: "GET"            
         tags:

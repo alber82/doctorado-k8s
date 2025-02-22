@@ -4,12 +4,12 @@ import { check } from 'k6';
 export
 const options = {
     vus: 100,
-    duration: '600s',
+    duration: '6000s',
 };
 
 export default function
     () {
-    const response = http.get('http://nginx-project.nginx');
+    const response = http.get('http://nginx.nginx');
 
     check(response,
         {
