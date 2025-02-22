@@ -28,7 +28,7 @@ spec:
   ports:
     - port: 80
   selector:
-    app: nginx-server
+    app: nginx
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -61,6 +61,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
+        - name: KUBERNETES_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name                
       volumes:
       - name: nginx-config-volume
         configMap:
