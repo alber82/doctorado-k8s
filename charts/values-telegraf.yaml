@@ -163,7 +163,13 @@ config:
     - http_listener_v2:
         service_address: ":1234"
         paths: ["/receive"]  
-        data_format: "prometheusremotewrite"  
+        data_format: "prometheusremotewrite"
+    - nginx:
+        urls: ["http://nginx-service/status"]
+        tagexclude: ["url"]
+        tags:
+          instance: "$HOSTNAME"
+          node: "$KUBERNETES_NODE_NAME"
 metrics:
   health:
     enabled: false

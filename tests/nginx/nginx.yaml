@@ -1,4 +1,24 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  default.conf: |
+    server {
+        listen 80;
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+        }
+
+        # Exponer estadísticas en /status
+        location /status {
+            stub_status;
+            allow all;
+        }
+    }
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: nginx-server
@@ -13,20 +33,35 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-server
-  namespace: nginx
+  name: nginx-deployment
+  labels:
+    app: nginx
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: nginx-project
+      app: nginx
   template:
     metadata:
       labels:
-        app: nginx-project
+        app: nginx
     spec:
+      schedulerName: randomscheduler
       containers:
-        - name: nginx
-          image: nginx:1.17.3
-          ports:
-            - containerPort: 80
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        env:
+        - name: KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+      volumes:
+      - name: nginx-config-volume
+        configMap:
+          name: nginx-config
