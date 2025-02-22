@@ -97,7 +97,8 @@ metadata:
   labels:
     app: nginx
 spec:
-  replicas: 10
+  replicas: 1
+  schedulerName: randomscheduler
   selector:
     matchLabels:
       app: nginx
@@ -111,10 +112,10 @@ spec:
         image: nginx:latest
         resources:
           requests:
-            cpu: 300m
+            cpu: 250m
             memory: 256M
           limits:
-            cpu: 300m
+            cpu: 250m
             memory: 256M
         ports:
         - containerPort: 80
