@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"main/pkg/commons"
 	"main/pkg/influxdb"
+	"math"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -84,7 +85,7 @@ func NewScheduler(podQueue chan *v1.Pod, quit chan struct{}) Scheduler {
 	}
 	log.SetOutput(os.Stdout)
 
-	fmt.Printf("Config: %+v\n", params)
+	fmt.Printf("Config: %v\n", params)
 
 	databaseClient := influxdb.DatabaseClient{
 		Params: params.Influxdb,
@@ -145,7 +146,7 @@ func initInformers(clientset *kubernetes.Clientset, podQueue chan *v1.Pod, quit 
 func main() {
 	fmt.Println("Scheduler started!")
 
-	rand.Seed(time.Now().Unix())
+	rand.New(rand.NewSource(time.Now().Unix()))
 
 	podQueue := make(chan *v1.Pod, 300)
 	defer close(podQueue)
@@ -349,6 +350,8 @@ func (s *Scheduler) fitResourcesPredicate(node *v1.Node, pod *v1.Pod) bool {
 	freeMem := node.Status.Allocatable.Memory()
 	freeMem.Sub(nodeMem)
 
+	log.Info("freeCpu: ", freeCpu, " freeMem: ", freeMem)
+	log.Info("podCpu: ", podCpu, " podMemory: ", podMemory)
 	if freeCpu.Cmp(podCpu) == -1 || freeMem.Cmp(podMemory) == -1 {
 		return false
 	}
@@ -360,6 +363,8 @@ func (s *Scheduler) findBestNode(priorities map[string]int64) string {
 	var objectiveP int64
 	var bestNode string
 
+	log.Info("priorities: ", priorities)
+
 	if s.schedulerParams.MetricParams.PriorityOrder == "asc" {
 		objectiveP = 0
 		for node, p := range priorities {
@@ -369,7 +374,7 @@ func (s *Scheduler) findBestNode(priorities map[string]int64) string {
 			}
 		}
 	} else {
-		int64Max := int64(1<<63 - 1)
+		int64Max := int64(math.MaxInt64)
 		objectiveP = int64Max
 		for node, p := range priorities {
 			if p < objectiveP {
@@ -378,6 +383,8 @@ func (s *Scheduler) findBestNode(priorities map[string]int64) string {
 			}
 		}
 	}
+
+	log.Info("bestNode: ", bestNode, " priority: ", objectiveP)
 
 	return bestNode
 }

@@ -42,16 +42,6 @@ spec:
     rollingUpdate:
       maxSurge: 45%
       maxUnavailable: 35%
-  constraints:
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: kubernetes.io/hostname
-                  operator: In
-                  values:
-                    - worker04
   filterNodes:
   - master01
   - worker04
