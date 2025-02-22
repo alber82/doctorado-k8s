@@ -179,7 +179,6 @@ config:
           instance: "$HOSTNAME"
           node: "$KUBERNETES_NODE_NAME"
           pod: "$KUBERNETES_POD_NAME"
-
 metrics:
   health:
     enabled: false

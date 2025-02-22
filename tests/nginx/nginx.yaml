@@ -21,7 +21,7 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-server
+  name: nginx
   namespace: nginx
 spec:
   type: LoadBalancer
@@ -64,7 +64,11 @@ spec:
         - name: KUBERNETES_POD_NAME
           valueFrom:
             fieldRef:
+<<<<<<< HEAD
               fieldPath: metadata.name                
+=======
+              fieldPath: metadata.name
+>>>>>>> b1fd1910b7c5ed2b2b264486bfab156148ec93c3
       volumes:
       - name: nginx-config-volume
         configMap:
