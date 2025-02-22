@@ -59,17 +59,13 @@ data:
       organization = "uclm"
       bucket = "doctorado"
 
-    [[inputs.http_listener_v2]]
-      service_address = ":1234"
-      paths = ["/receive"]
-      data_format = "prometheusremotewrite"
-
     [[inputs.nginx]]
       urls = ["http://localhost/status"]
       tagexclude = ["url"]
       [inputs.nginx.tags]
         instance = "$HOSTNAME"
         node = "$KUBERNETES_NODE_NAME"
+        pod = "$KUBERNETES_POD_NAME"
 
     [[inputs.http_response]]
       urls = ["http://localhost"]
@@ -89,7 +85,6 @@ metadata:
     app: nginx
 spec:
   replicas: 1
-  schedulerName: randomscheduler
   selector:
     matchLabels:
       app: nginx
@@ -98,6 +93,7 @@ spec:
       labels:
         app: nginx
     spec:
+      schedulerName: randomscheduler
       containers:
       - name: nginx
         image: nginx:latest
@@ -149,7 +145,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: nginx
 spec:
   selector:
     app: nginx

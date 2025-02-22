@@ -164,21 +164,21 @@ config:
         service_address: ":1234"
         paths: ["/receive"]  
         data_format: "prometheusremotewrite"
-    - nginx:
-        urls: ["http://nginx-server.nginx/status"]
-        tagexclude: ["url"]
-        tags:
-          instance: "$HOSTNAME"
-          node: "$KUBERNETES_NODE_NAME"
-          pod: "$KUBERNETES_POD_NAME"
-   - http_response:
-        urls: ["http://nginx-server.nginx"]
-        response_timeout: "5s"
-        method: "GET"
-        tags:
-          instance: "$HOSTNAME"
-          node: "$KUBERNETES_NODE_NAME"
-          pod: "$KUBERNETES_POD_NAME"
+#     - nginx:
+#         urls: ["http://nginx-server.nginx/status"]
+#         tagexclude: ["url"]
+#         tags:
+#           instance: "$HOSTNAME"
+#           node: "$KUBERNETES_NODE_NAME"
+#           pod: "$KUBERNETES_POD_NAME"
+#    - http_response:
+#         urls: ["http://nginx-server.nginx"]
+#         response_timeout: "5s"
+#         method: "GET"
+#         tags:
+#           instance: "$HOSTNAME"
+#           node: "$KUBERNETES_NODE_NAME"
+#           pod: "$KUBERNETES_POD_NAME"
 metrics:
   health:
     enabled: false

@@ -1,0 +1,87 @@
+Medias en espera
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "nginx" and r._field == "waiting")
+  |> group(columns: ["node", "pod"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node", "pod", "avg_waiting"])'
+
+
+con ventana
+from(bucket: "doctorado")
+  |> range(start: -2h)
+  |> filter(fn: (r) => r._measurement == "nginx")
+  |> filter(fn: (r) => r._field == "waiting")
+  |> group(columns: ["node", "pod"])
+  |> aggregateWindow(every: 10m, fn: mean, createEmpty: false)
+
+
+
+
+  activos
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "nginx" and r._field == "active")
+  |> group(columns: ["node", "pod"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node", "pod", "avg_waiting"])'
+
+
+
+request
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "nginx" and r._field == "requests")
+  |> group(columns: ["node", "pod"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node", "pod", "avg_waiting"])'
+
+
+
+handle
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "nginx" and r._field == "handled")
+  |> group(columns: ["node", "pod"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node", "pod", "avg_waiting"])'
+
+
+
+  ------------------
+
+  latencia
+  por pod y en ventana
+
+  influx query 'from(bucket: "doctorado")
+  |> range(start: -2h)
+  |> filter(fn: (r) => r._measurement == "http_response")
+  |> filter(fn: (r) => r._field == "response_time")
+  |> group(columns: ["node", "pod"])
+  |> aggregateWindow(every: 10m, fn: mean, createEmpty: false)'
+
+
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "http_response" and r._field == "response_time")
+  |> group(columns: ["node"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node",  "avg_waiting"])'
+
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "http_response")
+  |> filter(fn: (r) => r._field == "response_time")
+  |> group()  // Elimina cualquier agrupación previa
+  |> mean()'

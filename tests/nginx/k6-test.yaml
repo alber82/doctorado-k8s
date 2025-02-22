@@ -12,11 +12,11 @@ spec:
   runner:
     resources:
       requests:
-        cpu: 2000m
-        memory: 2048M
+        cpu: 2500m
+        memory: 4096M
       limits:
-        cpu: 2000m
-        memory: 2048M
+        cpu: 3000m
+        memory: 5000M
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
