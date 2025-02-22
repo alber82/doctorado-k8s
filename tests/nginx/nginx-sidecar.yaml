@@ -54,7 +54,7 @@ data:
           critical = 3
 
     [[outputs.influxdb_v2]]
-      urls = ["http://influxdb-influxdb2:80"]
+      urls = ["http://influxdb-influxdb2.monitoring:80"]
       token = "klsjdaioqwehrqoikdnmxcq"
       organization = "uclm"
       bucket = "doctorado"
@@ -79,15 +79,6 @@ data:
         instance = "$HOSTNAME"
         node = "$KUBERNETES_NODE_NAME"
         pod = "$KUBERNETES_POD_NAME"
-
-   - http_response:
-        urls: ["http://nginx-server.nginx"]
-        response_timeout: "5s"
-        method: "GET"
-        tags:
-          instance: "$HOSTNAME"
-          node: "$KUBERNETES_NODE_NAME"
-          pod: "$KUBERNETES_POD_NAME"
 
 ---
 apiVersion: apps/v1
@@ -133,7 +124,16 @@ spec:
             fieldRef:
               fieldPath: metadata.name
       - name: telegraf
-        image: telegraf:latest
+        image: docker.io/library/telegraf:1.32.1-alpine
+        env:
+        - name: KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: KUBERNETES_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
         volumeMounts:
         - name: telegraf-config-volume
           mountPath: /etc/telegraf/telegraf.conf
