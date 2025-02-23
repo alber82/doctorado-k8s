@@ -10,26 +10,26 @@ export let options = {
             preAllocatedVUs: 100, // Número inicial de VUs preasignados
             maxVUs: 1500, // Máximo de VUs disponibles
             stages: [
-                { duration: '5m', target: 150 },   // 500 RPS en los primeros 10 minutos
-                { duration: '5m', target: 300 },   // Aumento del 5% a 525 RPS durante 10 minutos
-                { duration: '5m', target: 450 },   // Aumento del 5% a 551 RPS durante 10 minutos
-                { duration: '5m', target: 600 },   // Aumento del 5% a 578 RPS durante 10 minutos
-                { duration: '5m', target: 750 },   // Aumento del 5% a 607 RPS durante 10 minutos
-                { duration: '5m', target: 900 },   // Aumento del 5% a 637 RPS durante 10 minutos
-                { duration: '5m', target: 1050 },   // Aumento del 5% a 669 RPS durante 10 minutos
-                { duration: '5m', target: 1200 },   // Aumento del 5% a 702 RPS durante 10 minutos
-                { duration: '5m', target: 1350 },   // Aumento del 5% a 737 RPS durante 10 minutos
-                { duration: '5m', target: 1500 },   // Aumento del 5% a 773 RPS durante 10 minutos
-                { duration: '5m', target: 1650 },   // Aumento del 5% a 811 RPS durante 10 minutos
-                { duration: '5m', target: 1800 },   // Aumento del 5% a 851 RPS durante 10 minutos
-                { duration: '5m', target: 1950 },   // Aumento del 5% a 893 RPS durante 10 minutos
-                { duration: '5m', target: 2100 },   // Aumento del 5% a 937 RPS durante 10 minutos
-                { duration: '5m', target: 2250 },   // Aumento del 5% a 984 RPS durante 10 minutos
-                { duration: '5m', target: 2400 }, // Aumento del 5% a 1,033 RPS durante 10 minutos
-                { duration: '5m', target: 2550 }, // Aumento del 5% a 1,085 RPS durante 10 minutos
-                { duration: '5m', target: 2700 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
-                { duration: '5m', target: 2850 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
-                { duration: '5m', target: 3000 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+                { duration: '5m', target: 250 },   // 500 RPS en los primeros 10 minutos
+                { duration: '5m', target: 500 },   // Aumento del 5% a 525 RPS durante 10 minutos
+                { duration: '5m', target: 750 },   // Aumento del 5% a 551 RPS durante 10 minutos
+                { duration: '5m', target: 1000 },   // Aumento del 5% a 578 RPS durante 10 minutos
+                { duration: '5m', target: 1250 },   // Aumento del 5% a 607 RPS durante 10 minutos
+                { duration: '5m', target: 1500 },   // Aumento del 5% a 637 RPS durante 10 minutos
+                { duration: '5m', target: 1750 },   // Aumento del 5% a 669 RPS durante 10 minutos
+                { duration: '5m', target: 2000 },   // Aumento del 5% a 702 RPS durante 10 minutos
+                { duration: '5m', target: 2250 },   // Aumento del 5% a 737 RPS durante 10 minutos
+                { duration: '5m', target: 2500 },   // Aumento del 5% a 773 RPS durante 10 minutos
+                { duration: '5m', target: 2750 },   // Aumento del 5% a 811 RPS durante 10 minutos
+                { duration: '5m', target: 3000 },   // Aumento del 5% a 851 RPS durante 10 minutos
+                { duration: '5m', target: 3250 },   // Aumento del 5% a 893 RPS durante 10 minutos
+                { duration: '5m', target: 3500 },   // Aumento del 5% a 937 RPS durante 10 minutos
+                { duration: '5m', target: 3750 },   // Aumento del 5% a 984 RPS durante 10 minutos
+                { duration: '5m', target: 4000 }, // Aumento del 5% a 1,033 RPS durante 10 minutos
+                { duration: '5m', target: 4250 }, // Aumento del 5% a 1,085 RPS durante 10 minutos
+                { duration: '5m', target: 4500 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+                { duration: '5m', target: 4750 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+                { duration: '5m', target: 5000 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
                 // { duration: '5m', target: 50 },   // 500 RPS en los primeros 10 minutos
                 // { duration: '5m', target: 100 },   // Aumento del 5% a 525 RPS durante 10 minutos
                 // { duration: '5m', target: 150 },   // Aumento del 5% a 551 RPS durante 10 minutos
