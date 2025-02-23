@@ -28,9 +28,11 @@ export let options = {
         // Define un umbral para asegurar que el 95% de las peticiones tengan un tiempo de respuesta menor a 2 segundos
         http_req_duration: ['p(95)<2000'],
     },
+    discardResponseBodies: true, // Evita almacenar respuestas grandes
 };
 
 export default function () {
     const res = http.get('http://nginx.nginx');  // Sustituye con la URL de tu servidor
     check(res, { 'is status 200': (r) => r.status === 200 });
+
 }
