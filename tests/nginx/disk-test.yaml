@@ -65,47 +65,46 @@ spec:
     metadata:
       labels:
         app: disk-stress
-      spec:
+    spec:
         schedulerName: randomscheduler
         containers:
-          - name: disk-stress
-            image: 192.168.1.229:5000/doctorado/disk-test:0.0.0
-            ports:
-              - containerPort: 3000
-            volumeMounts:
-              - mountPath: /data
-                name: disk-volume
-            env:
-            - name: KUBERNETES_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-            - name: KUBERNETES_POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-          - name: telegraf
-            image: docker.io/library/telegraf:1.32.1-alpine
-            env:
-            - name: KUBERNETES_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-            - name: KUBERNETES_POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            volumeMounts:
-            - name: telegraf-config-volume
-              mountPath: /etc/telegraf/telegraf.conf
-              subPath: telegraf.conf
-
-        volumes:
-          - name: disk-volume
-            emptyDir: {}   # Esto usa el disco del nodo
+        - name: disk-stress
+          image: 192.168.1.229:5000/doctorado/disk-test:0.0.0
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - mountPath: /data
+              name: disk-volume
+          env:
+          - name: KUBERNETES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: KUBERNETES_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        - name: telegraf
+          image: docker.io/library/telegraf:1.32.1-alpine
+          env:
+          - name: KUBERNETES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: KUBERNETES_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          volumeMounts:
           - name: telegraf-config-volume
-            configMap:
-              name: telegraf-config
+            mountPath: /etc/telegraf/telegraf.conf
+            subPath: telegraf.conf
+    volumes:
+      - name: disk-volume
+        emptyDir: {}   # Esto usa el disco del nodo
+      - name: telegraf-config-volume
+        configMap:
+          name: telegraf-config
 
 ---
 apiVersion: v1
