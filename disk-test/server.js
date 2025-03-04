@@ -30,7 +30,7 @@ app.get('/disk-usage', (req, res) => {
 app.post('/write', (req, res) => {
     const filename = `file_${uuidv4()}.dat`;
     const filepath = path.join(DATA_DIR, filename);
-    const data = 'A'.repeat(10 * 1024 * 1024); // 10MB
+    const data = 'A'.repeat(1 * 1024 * 1024); // 1MB
 
     fs.writeFile(filepath, data, (err) => {
         if (err) return res.status(500).send('Error al escribir en disco');

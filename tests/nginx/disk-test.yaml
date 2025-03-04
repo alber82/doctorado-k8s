@@ -37,20 +37,17 @@ data:
       bucket = "doctorado"
 
     [[inputs.diskio]]
-      ## By default, telegraf will gather stats for all devices.
-      ## If you only want to gather stats for specific devices, use the devices option
-      # devices = ["sda", "sdb", "nvme0n1"]
 
       ## Collect disk usage stats
       # fieldpass = ["reads", "writes", "read_bytes", "write_bytes", "io_time"]
 
       ## Interval in which to collect stats
       interval = "10s"  # Puedes ajustarlo según tus necesidades
-      [inputs.nginx.diskio]
+      devices = ["/dev/sda2","/dev/sda3"]  # Incluye todas las particiones relevantes
+      [inputs.diskio.tags]
         instance = "$HOSTNAME"
         node = "$KUBERNETES_NODE_NAME"
         pod = "$KUBERNETES_POD_NAME"
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -70,11 +67,14 @@ spec:
       containers:
         - name: disk-stress
           image: 192.168.1.229:5000/doctorado/disk-test:0.0.0
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           volumeMounts:
             - mountPath: /data
               name: disk-volume
+          securityContext:
+            privileged: true  # Habilitar el modo privilegiado
           env:
             - name: KUBERNETES_NODE_NAME
               valueFrom:
@@ -99,13 +99,20 @@ spec:
             - name: telegraf-config-volume
               mountPath: /etc/telegraf/telegraf.conf
               subPath: telegraf.conf
-
+            - name: dev
+              mountPath: /dev
+          securityContext:
+            privileged: true  # Habilitar el modo privilegiado
       volumes:  # <-- Debe estar dentro de 'spec', NO dentro de 'containers'
         - name: disk-volume
           emptyDir: {}   # Esto usa el disco del nodo
         - name: telegraf-config-volume
           configMap:
             name: telegraf-config
+        - name: dev
+          hostPath:
+            path: /dev
+            type: Directory
 ---
 apiVersion: v1
 kind: Service
@@ -117,5 +124,5 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 3000
   type: ClusterIP

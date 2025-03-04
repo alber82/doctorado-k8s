@@ -3,26 +3,26 @@ import { sleep } from 'k6';
 
 export let options = {
     stages: [
-        { duration: '5m', target: 50 },   // 500 RPS en los primeros 10 minutos
-        { duration: '5m', target: 100 },   // Aumento del 5% a 525 RPS durante 10 minutos
-        { duration: '5m', target: 150 },   // Aumento del 5% a 551 RPS durante 10 minutos
-        { duration: '5m', target: 200 },   // Aumento del 5% a 578 RPS durante 10 minutos
-        { duration: '5m', target: 250 },   // Aumento del 5% a 607 RPS durante 10 minutos
-        { duration: '5m', target: 300 },   // Aumento del 5% a 637 RPS durante 10 minutos
-        { duration: '5m', target: 350 },   // Aumento del 5% a 669 RPS durante 10 minutos
-        { duration: '5m', target: 400 },   // Aumento del 5% a 702 RPS durante 10 minutos
-        { duration: '5m', target: 450 },   // Aumento del 5% a 737 RPS durante 10 minutos
-        { duration: '5m', target: 500 },   // Aumento del 5% a 773 RPS durante 10 minutos
-        { duration: '5m', target: 550 },   // Aumento del 5% a 811 RPS durante 10 minutos
-        { duration: '5m', target: 600 },   // Aumento del 5% a 851 RPS durante 10 minutos
-        { duration: '5m', target: 650 },   // Aumento del 5% a 893 RPS durante 10 minutos
-        { duration: '5m', target: 700 },   // Aumento del 5% a 937 RPS durante 10 minutos
-        { duration: '5m', target: 750 },   // Aumento del 5% a 984 RPS durante 10 minutos
-        { duration: '5m', target: 800 }, // Aumento del 5% a 1,033 RPS durante 10 minutos
-        { duration: '5m', target: 850 }, // Aumento del 5% a 1,085 RPS durante 10 minutos
-        { duration: '5m', target: 900 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
-        { duration: '5m', target: 950 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
-        { duration: '5m', target: 1000 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+        { duration: '5m', target: 5 },   // 500 RPS en los primeros 10 minutos
+        { duration: '5m', target: 10 },   // Aumento del 5% a 525 RPS durante 10 minutos
+        { duration: '5m', target: 15 },   // Aumento del 5% a 551 RPS durante 10 minutos
+        { duration: '5m', target: 20 },   // Aumento del 5% a 578 RPS durante 10 minutos
+        { duration: '5m', target: 25 },   // Aumento del 5% a 607 RPS durante 10 minutos
+        { duration: '5m', target: 30 },   // Aumento del 5% a 637 RPS durante 10 minutos
+        { duration: '5m', target: 35 },   // Aumento del 5% a 669 RPS durante 10 minutos
+        { duration: '5m', target: 40 },   // Aumento del 5% a 702 RPS durante 10 minutos
+        { duration: '5m', target: 45 },   // Aumento del 5% a 737 RPS durante 10 minutos
+        { duration: '5m', target: 50 },   // Aumento del 5% a 773 RPS durante 10 minutos
+        { duration: '5m', target: 55 },   // Aumento del 5% a 811 RPS durante 10 minutos
+        { duration: '5m', target: 60 },   // Aumento del 5% a 851 RPS durante 10 minutos
+        { duration: '5m', target: 65 },   // Aumento del 5% a 893 RPS durante 10 minutos
+        { duration: '5m', target: 70 },   // Aumento del 5% a 937 RPS durante 10 minutos
+        { duration: '5m', target: 75 },   // Aumento del 5% a 984 RPS durante 10 minutos
+        { duration: '5m', target: 80 }, // Aumento del 5% a 1,033 RPS durante 10 minutos
+        { duration: '5m', target: 85 }, // Aumento del 5% a 1,085 RPS durante 10 minutos
+        { duration: '5m', target: 90 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+        { duration: '5m', target: 95 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+        { duration: '5m', target: 100 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
     ],
 };
 
