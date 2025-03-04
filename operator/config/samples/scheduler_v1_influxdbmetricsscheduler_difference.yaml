@@ -49,7 +49,7 @@ spec:
     organization: uclm
     bucket: doctorado
   metric:
-    name: "node_network_transmit_bytes_total"
+    name: "node_network_receive_bytes_total"
     startDate: "-10m"
     endDate: "now()"
     operation: "difference"
