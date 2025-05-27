@@ -2,7 +2,7 @@
 apiVersion: k6.io/v1alpha1
 kind: TestRun
 metadata:
-  name: k6-sample
+  name: k6-disk    
 spec:
   parallelism: 1
   script:
@@ -12,11 +12,11 @@ spec:
   runner:
     resources:
       requests:
-        cpu: 2500m
-        memory: 4096M
+        cpu: 1500m
+        memory: 2048M
       limits:
-        cpu: 3000m
-        memory: 5000M
+        cpu: 1600m
+        memory: 2048M
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -26,3 +26,4 @@ spec:
                   operator: In
                   values:
                     - master01
+

@@ -93,7 +93,7 @@ spec:
       labels:
         app: nginx
     spec:
-      schedulerName: randomscheduler
+      #      schedulerName: randomscheduler
       containers:
       - name: nginx
         image: nginx:latest

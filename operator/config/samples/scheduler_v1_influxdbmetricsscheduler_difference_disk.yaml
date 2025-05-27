@@ -1,10 +1,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: randomscheduler
+  name: influxdbmetricsscheduler
 subjects:
 - kind: ServiceAccount
-  name: randomscheduler
+  name: influxdbmetricsscheduler
   namespace: scheduling
 roleRef:
   kind: ClusterRole
@@ -12,15 +12,15 @@ roleRef:
   name: system:kube-scheduler
 ---
 apiVersion: scheduler.uclm.es/v1
-kind: RandomScheduler
+kind: InfluxdbMetricsScheduler
 metadata:
   labels:
     app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
-  name: randomscheduler
+  name: influxdbmetricsscheduler
   namespace: scheduling
 spec:
-  image: 192.168.1.229:5000/doctorado/random-scheduler:0.0.0
+  image: 192.168.1.229:5000/doctorado/influxdb-scheduler:0.0.0
   imagePullPolicy: Always
   instances: 1
   resources:
@@ -37,22 +37,28 @@ spec:
     readinessProbe:
       initialDelaySeconds: 5
       periodSeconds: 10
-#   constraints:
-#     affinity:
-#       nodeAffinity:
-#         requiredDuringSchedulingIgnoredDuringExecution:
-#           nodeSelectorTerms:
-#             - matchExpressions:
-#                 - key: kubernetes.io/hostname
-#                   operator: In
-#                   values:
-#                     - worker04
   updateStrategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 45%
       maxUnavailable: 35%
+  influxdb:
+    host: influxdb-influxdb2.monitoring
+    port: "80"
+    token: klsjdaioqwehrqoikdnmxcq
+    organization: uclm
+    bucket: doctorado
+  metric:
+    name: "node_disk_written_bytes_total"
+    startDate: "-5m"
+    endDate: "now()"
+    operation: "difference"
+    priorityOrder: "desc"
+    filters:
+    - "fn: (r) => r['device'] == 'sda'"
+    isSecondLevel: false
   filterNodes:
   - master01
 #  - worker04
   - worker05
+      

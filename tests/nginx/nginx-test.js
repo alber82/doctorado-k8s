@@ -25,11 +25,11 @@ export let options = {
                 { duration: '5m', target: 3250 },   // Aumento del 5% a 893 RPS durante 10 minutos
                 { duration: '5m', target: 3500 },   // Aumento del 5% a 937 RPS durante 10 minutos
                 { duration: '5m', target: 3750 },   // Aumento del 5% a 984 RPS durante 10 minutos
-                { duration: '5m', target: 4000 }, // Aumento del 5% a 1,033 RPS durante 10 minutos
-                { duration: '5m', target: 4250 }, // Aumento del 5% a 1,085 RPS durante 10 minutos
-                { duration: '5m', target: 4500 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
-                { duration: '5m', target: 4750 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
-                { duration: '5m', target: 5000 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+//                { duration: '5m', target: 4000 }, // Aumento del 5% a 1,033 RPS durante 10 minutos
+//                { duration: '5m', target: 4250 }, // Aumento del 5% a 1,085 RPS durante 10 minutos
+//                { duration: '5m', target: 4500 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+//                { duration: '5m', target: 4750 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+//                { duration: '5m', target: 5000 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
             ],
         },
     },
@@ -46,7 +46,7 @@ export default function () {
     const res = http.get('http://nginx.nginx');
     check(res, { 'is status 200': (r) => r.status === 200 });
 
-    if (__VU % 10 === 0) {
-        __VU.gc();  // Forzar liberación de memoria cada 10 VUs
-    }
+//    if (__VU % 10 === 0) {
+//        __VU.gc();  // Forzar liberación de memoria cada 10 VUs
+//    }
 }

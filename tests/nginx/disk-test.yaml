@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: telegraf-config
+  name: telegraf-config-disk
   labels:
     app: telegraf
 data:
@@ -43,7 +43,7 @@ data:
 
       ## Interval in which to collect stats
       interval = "10s"  # Puedes ajustarlo según tus necesidades
-      devices = ["/dev/sda2","/dev/sda3"]  # Incluye todas las particiones relevantes
+      devices = ["/dev/sda1","/dev/sda2","/dev/sda3"]  # Incluye todas las particiones relevantes
       [inputs.diskio.tags]
         instance = "$HOSTNAME"
         node = "$KUBERNETES_NODE_NAME"
@@ -63,10 +63,17 @@ spec:
       labels:
         app: disk-stress
     spec:
-#       schedulerName: randomscheduler
+      #      schedulerName: randomscheduler
       containers:
         - name: disk-stress
           image: 192.168.1.229:5000/doctorado/disk-test:0.0.0
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256M
+            limits:
+              cpu: 250m
+              memory: 256M
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -108,7 +115,7 @@ spec:
           emptyDir: {}   # Esto usa el disco del nodo
         - name: telegraf-config-volume
           configMap:
-            name: telegraf-config
+            name: telegraf-config-disk
         - name: dev
           hostPath:
             path: /dev

@@ -9,7 +9,7 @@ alertmanager:
                 - key: kubernetes.io/hostname
                   operator: In
                   values:
-                    - worker05
+                    - master01
 grafana:
   enable: false
   affinity:
@@ -20,7 +20,7 @@ grafana:
               - key: kubernetes.io/hostname
                 operator: In
                 values:
-                  - worker05
+                  - master01
 prometheusOperator:
   affinity:
     nodeAffinity:
@@ -30,7 +30,7 @@ prometheusOperator:
               - key: kubernetes.io/hostname
                 operator: In
                 values:
-                  - worker05
+                  - master01
 prometheus:
   prometheusSpec:
     affinity:
@@ -41,7 +41,7 @@ prometheus:
                 - key: kubernetes.io/hostname
                   operator: In
                   values:
-                    - worker05
+                    - master01
     remoteWrite:
       #    - url: "http://vms-victoria-metrics-single-server.monitoring.svc.cluster.local:8428/api/v1/write"                            
     - url: "http://telegraf.monitoring:1234/receive"      
@@ -54,4 +54,4 @@ kube-state-metrics:
               - key: kubernetes.io/hostname
                 operator: In
                 values:
-                  - worker05
+                  - master01
