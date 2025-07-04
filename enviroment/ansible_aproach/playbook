@@ -1,0 +1,43 @@
+---
+- name: Bootstrap cluster K3s con Raspberry Pi
+  hosts: all
+  become: yes
+  vars_files:
+    - cluster-vars.yml
+
+  pre_tasks:
+    - name: Instalar dependencias base
+      apt:
+        name:
+          - curl
+          - wget
+          - git
+          - python3-pip
+        update_cache: yes
+
+    - name: Instalar paquetes pip necesarios
+      pip:
+        name: kubernetes
+      when: inventory_hostname == groups['bootstrap'][0]
+
+  roles:
+    - common
+    - ssh_keys
+    - k3s_master
+    - k3s_workers
+    - cilium
+    - charts
+
+# Inventory esperado:
+# [bootstrap]
+# bootstrap ansible_host=192.168.1.229
+#
+# [master]
+# master01 ansible_host=192.168.1.220
+#
+# [workers]
+# worker01 ansible_host=192.168.1.221
+# worker02 ansible_host=192.168.1.222
+# worker03 ansible_host=192.168.1.223
+# worker04 ansible_host=192.168.1.224
+# worker05 ansible_host=192.168.1.225

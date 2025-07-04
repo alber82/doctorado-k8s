@@ -1,0 +1,31 @@
+---
+- name: Bootstrap cluster desde nodo bootstrap
+  hosts: all
+  become: true
+  roles:
+    - common
+    - ssh_keys
+
+- name: Instalar K3s en master
+  hosts: master
+  become: true
+  roles:
+    - k3s_master
+
+- name: Instalar K3s en workers
+  hosts: worker
+  become: true
+  roles:
+    - k3s_workers
+
+- name: Instalar Cilium
+  hosts: master
+  become: true
+  roles:
+    - cilium
+
+- name: Desplegar charts
+  hosts: master
+  become: true
+  roles:
+    - charts

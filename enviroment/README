@@ -4,7 +4,9 @@ Necesitamos montar las imagenes en las tarjetas, para ello instalar version prei
 
 USB=/dev/mmcblk0
 sudo wipefs -a -f ${USB}
-xz -d < img/ubuntu-22.04.1-preinstalled-server-arm64+raspi.img.xz - | sudo dd bs=100M of=${USB}
+IMG=ubuntu-24.04.1-preinstalled-server-arm64+raspi.img.xz
+URL_IMG=https://cdimage.ubuntu.com/releases/24.04/release/${IMG}
+xz -d < img/ubuntu-24.04.1-preinstalled-server-arm64+raspi.img.xz - | sudo dd bs=100M of=${USB}
 
 Step 5: Mount system-boot in the burned image
 
@@ -21,42 +23,38 @@ Step 7: Unmount system-boot partition
 sudo umount ${SYSTEM_BOOT_MOUNT}
 
 
-generar claves en todos los nodos y crear authorized_keys y /etc/hosts
-
+generar claves en todos los nodos y crear authorized_keys y /etc/hosts -- enprincipio resuelto con script setup-cluster-acces.sh
 
 posteriormente para instalar k3s
 
+master
 
 curl -sfL https://get.k3s.io | \
   INSTALL_K3S_VERSION="v1.30.5+k3s1" \
   sh -s - --disable traefik --flannel-backend=none --disable-network-policy
 
+obtenemos token
 
+sudo cat /var/lib/rancher/k3s/server/node-token
 
-  sudo cat /var/lib/rancher/k3s/server/node-token
-
-
-¿Dónde está el kubeconfig?
-Por defecto está en:
-
-sudo cat /etc/rancher/k3s/k3s.yaml
-Y gracias al flag --write-kubeconfig-mode 644, puedes usarlo como usuario normal con:
+¿Dónde está el kubeconfig? /etc/rancher/k3s/k3s.yaml
 
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 kubectl get nodes
 
+Worker
 
-
-    curl -sfL https://get.k3s.io | \
-  INSTALL_K3S_VERSION=v1.30.5+k3s1 \
-  K3S_URL=https://192.168.1.220:6443 \
-  K3S_TOKEN=K1004ecb5ba2b86b5a3981c48d527c82929ef13f58594d4fb5ad50cbf590823d1e3::server:d1d5afc3e61ffeec2a92ea491ca20f2c \
-  sh -s - --node-taint="" --node-name=worker05
+curl -sfL https://get.k3s.io | \
+INSTALL_K3S_VERSION=v1.30.5+k3s1 \
+K3S_URL=https://192.168.1.220:6443 \
+K3S_TOKEN=K1004ecb5ba2b86b5a3981c48d527c82929ef13f58594d4fb5ad50cbf590823d1e3::server:d1d5afc3e61ffeec2a92ea491ca20f2c \
+sh -s -
+// --node-taint="" --node-name=worker05
 
   ---
 
-  worker
-
+bootstrap
+Trae KUBECONFIG
 
 instalar helm
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -65,8 +63,6 @@ CILLIUM
 
 helm repo add cilium https://helm.cilium.io/
 helm repo update
-
-
 
 helm install cilium cilium/cilium --version 1.16.2 \
   --namespace kube-system \
@@ -79,7 +75,8 @@ helm install cilium cilium/cilium --version 1.16.2 \
   --set hubble.ui.enabled=true \
   --set hubble.relay.enabled=true
 
-  kubectl -n kube-system get pods -l k8s-app=cilium
+kubectl -n kube-system get pods -l k8s-app=cilium
 
+Instalar solucion de monitorizacion
 
-EN INSTALL.SH pasos para instalar monitorizacion e influx
+En install.sh pasos para instalar monitorizacion e influx

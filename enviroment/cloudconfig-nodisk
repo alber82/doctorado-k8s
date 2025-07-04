@@ -1,0 +1,22 @@
+#cloud-config
+
+# Set TimeZone and Locale
+timezone: UTC
+locale: es_ES.UTF-8
+
+# Hostname
+hostname: worker05
+
+# cloud-init not managing hosts file. only hostname is added
+manage_etc_hosts: localhost
+
+users:
+  # not using default ubuntu user
+  - name: doctorado
+    primary_group: users
+    groups: [adm, admin]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDPwfXsK0oFNT5Q+arpTPh42UXido8r0603OfzrGPlWRu5f0sonbG0MBEwfQWlN4Pd777bGCJBKwSCfDLfbyMUxQDsZN4jX5MoGOSXWMO9xYkmsuRe4//d2ca3jh3TvbZyS4TCGHjEnRT6VVMITnc7x4ti32cj89Zq7h/jy0oYyPTDvdL9jF/Df8MQ6Yuth0wiA2P5rH0Ucjk2zfseeW63TrGatB0TKIMlNmPf+eOEEcaP5FxMundUEveDK2uAXJxkPMSabqDI1nbXbGZ6U4n9per6PHAFUwQXaknVjKwz5wXkGe91j4M+PytX51nB94VRfxa6UfW6RCBAN7fv7kSSRNVLQ7JnI059nT0UANLfX2v3f7R0yxBkL+L6k0eDKIZ9aNYwbboSbJkwtXfpKJmCpzd9qaiUP/xDzTs/bPSgIgbhYN2O/cak3GpBfLGOC3+wCQL186xX0ICxeM1OBqGWeylsFdOwYwDFKfLpMxG5IqHZ1JCYedh8U9dQ0aZU+xMLa/KAOAiynNF01LFgPIxkldf5mKsNspUmR2r0kCU1CmrORpAfWt1KAniqsuDmaLTIHPwlIXOzylUbGN+S5Syv/OJYIL32MKP72yBMUnYSBnzX6VJiOs0NbMtZf38DvEYotDP509v+yDs9dO44+kM8XHXu+olRXehSjI0ce/0oFBw== albertogomez@albertogomez

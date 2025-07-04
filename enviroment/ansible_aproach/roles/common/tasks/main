@@ -1,0 +1,16 @@
+---
+- name: Actualizar el sistema
+  apt:
+    upgrade: dist
+    update_cache: yes
+
+- name: Instalar paquetes comunes
+  apt:
+    name:
+      - curl
+      - git
+      - vim
+      - net-tools
+      - htop
+      - rsync
+    state: present

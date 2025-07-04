@@ -1,0 +1,22 @@
+---
+- name: Añadir repositorio de Helm de Cilium
+  shell: helm repo add cilium https://helm.cilium.io && helm repo update
+  args:
+    creates: /tmp/cilium-repo-added
+  register: result
+
+- name: Marcar repo como añadido
+  file:
+    path: /tmp/cilium-repo-added
+    state: touch
+  when: result.rc == 0
+
+- name: Instalar Cilium con Helm
+  shell: |
+    helm upgrade --install cilium cilium/cilium \
+      --namespace kube-system \
+      --set kubeProxyReplacement=true \
+      --set k8sServiceHost={{ hostvars[groups['master'][0]]['ansible_host'] }} \
+      --set k8sServicePort=6443
+  args:
+    creates: /tmp/cilium-installed

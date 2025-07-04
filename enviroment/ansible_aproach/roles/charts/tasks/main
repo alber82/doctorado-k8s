@@ -1,0 +1,44 @@
+---
+- name: Añadir repositorios de Helm necesarios
+  shell: |
+    helm repo add influxdata https://helm.influxdata.com || true
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
+    helm repo add grafana https://grafana.github.io/helm-charts || true
+    helm repo update
+  args:
+    creates: /tmp/helm-repos-added
+
+- name: Crear namespace monitoring si no existe
+  shell: kubectl create namespace monitoring || true
+
+- name: Desplegar InfluxDB
+  shell: |
+    helm upgrade --install influxdb influxdata/influxdb2 \
+      -n monitoring \
+      -f /opt/charts/values-influxdb.yaml
+
+- name: Crear organización y bucket en InfluxDB
+  shell: |
+    influx org create --name uclm --description "uclm"
+    influx bucket create --name doctorado --org uclm --retention 72h
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+
+- name: Desplegar Telegraf
+  shell: |
+    helm upgrade --install telegraf influxdata/telegraf \
+      -n monitoring \
+      -f /opt/charts/values-telegraf.yaml
+
+- name: Desplegar kube-prometheus-stack
+  shell: |
+    helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+      -n monitoring \
+      -f /opt/charts/values-prometheus-stack.yaml
+
+- name: Desplegar k6-operator
+  shell: |
+    helm install k6-operator grafana/k6-operator \
+      -f /opt/charts/values.yaml
+  ignore_errors: true
