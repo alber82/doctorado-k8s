@@ -1,6 +1,6 @@
 herramientas de benchmark y test k8s
 
-
+https://picluster.ricsanfre.com/docs/ubuntu/rpi/
 
 https://grafana.com/blog/2022/06/23/running-distributed-load-tests-on-kubernetes/
 

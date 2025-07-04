@@ -12,12 +12,3 @@ helm uninstall kube-prometheus-stack    --namespace monitoring
 
 # instalacion k6 operator
 helm install k6-operator grafana/k6-operator -f values.yaml
-
-# instalacion kafka
-#kubectl apply -f https://strimzi.io/examples/latest/kafka/kraft/kafka-single-node.yaml -n kafka
-#kubectl -n kafka apply -f 'https://strimzi.io/install/latest?namespace=kafka'
-#
-#
-##test
-#kubectl create configmap postgres-stress-test --from-file test/postgres/postgres-test.js
-#kubectl create configmap kafka-stress-test --from-file test/kafka/kafka-test.js
