@@ -1,0 +1,25 @@
+alertmanager:
+  enable: false
+grafana:
+  enable: false
+prometheusOperator:
+  enable: false
+prometheus:
+  enable: false
+kube-state-metrics:
+  enable: false
+prometheus-node-exporter:
+  extraArgs:
+    - --collector.cpu
+    - --collector.diskstats
+    - --collector.netdev
+    - --collector.netstat
+    - --collector.filesystem
+
+  resources:
+    limits:
+      cpu: 100m
+      memory: 50Mi
+    requests:
+      cpu: 50m
+      memory: 30Mi

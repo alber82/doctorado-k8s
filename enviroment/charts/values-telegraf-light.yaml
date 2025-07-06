@@ -35,12 +35,12 @@ env:
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 resources: {}
-# requests:
-#   memory: 128Mi
-#   cpu: 100m
-# limits:
-#   memory: 128Mi
-#   cpu: 100m
+requests:
+  memory: 64Mi
+  cpu: 50m
+limits:
+  memory: 128Mi
+  cpu: 100m
 
 ## Node labels for pod assignment
 ## ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -123,7 +123,7 @@ serviceAccount:
   create: true
   # The name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template
-  name:
+  name: telegraf
   # Annotations for the ServiceAccount
   annotations: {}
 ## Exposed telegraf configuration
@@ -160,10 +160,21 @@ config:
         organization: "uclm"
         bucket: "doctorado"
   inputs:
-    - http_listener_v2:
-        service_address: ":1234"
-        paths: ["/receive"]  
-        data_format: "prometheusremotewrite"
+#     - http_listener_v2:
+#         service_address: ":1234"
+#         paths: ["/receive"]
+#         data_format: "prometheusremotewrite"
+    inputs:
+      - prometheus:
+          monitor_kubernetes_pods: true
+          namespace: monitoring
+          label_selector: "app.kubernetes.io/name=node-exporter"
+#           tls_ca: "/etc/telegraf/ca/ca.crt"
+#           insecure_skip_verify: false
+          metric_include:
+            - "node_cpu_seconds_total"
+            - "node_disk_.*_bytes_total"
+            - "node_network_.*_bytes_total"
 #     - prometheus:
 #         urls: ["http://192.168.1.221:9100/metrics",  "http://192.168.1.222:9100/metrics", "http://192.168.1.223:9100/metrics", "http://192.168.1.224:9100/metrics", "http://192.168.1.225:9100/metrics"]
 #         metric_include:  ["node_cpu_seconds_total", "node_disk_written_bytes_total", "node_network_receive_bytes_total"]

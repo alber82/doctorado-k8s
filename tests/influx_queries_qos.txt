@@ -1,3 +1,111 @@
+IDLE MEASURMENT
+
+influx query 'import "math"
+
+First = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_disk_written_bytes_total")
+  |> filter(fn: (r) => r["device"] == "sda")
+  |> group(columns: ["instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_disk_written_bytes_total")
+  |> filter(fn: (r) => r["device"] == "sda")
+  |> group(columns: [ "instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
+
+Result: _result
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.220:9100                      88437248
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.221:9100                       2683392
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.222:9100                       8000000
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.223:9100                       4092416
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.224:9100                    1238806528
+
+
+
+
+influx query  'import "math"
+
+First = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: ["instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: [ "instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
+
+
+Result: _result
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.220:9100                       5162835
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.221:9100                       2096448
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.222:9100                       1688380
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.223:9100                       1911362
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.224:9100                      90440045
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.225:9100                      33950217
+
+
+
+
+
+
+
 Medias en espera
 
 influx query 'from(bucket: "doctorado")

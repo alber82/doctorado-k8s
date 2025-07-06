@@ -55,3 +55,16 @@ kube-state-metrics:
                 operator: In
                 values:
                   - worker05
+# prometheus-node-exporter:
+#   extraArgs:
+#     collector.cpu: ""
+#     collector.diskstats: ""
+#     collector.netdev: ""
+#
+#   resources:
+#     limits:
+#       cpu: 100m
+#       memory: 50Mi
+#     requests:
+#       cpu: 50m
+#       memory: 30Mi
