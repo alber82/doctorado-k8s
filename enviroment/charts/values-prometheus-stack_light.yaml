@@ -1,13 +1,21 @@
-alertmanager:
-  enable: false
-grafana:
-  enable: false
-prometheusOperator:
-  enable: false
-prometheus:
-  enable: false
+defaultRules:
+  create: false
+
 kube-state-metrics:
-  enable: false
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+grafana:
+  enabled: false
+
+prometheus:
+  enabled: false
+
+prometheusOperator:
+  enabled: false
+
 prometheus-node-exporter:
   extraArgs:
     - --collector.cpu
