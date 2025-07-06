@@ -18,11 +18,16 @@ prometheusOperator:
 
 prometheus-node-exporter:
   extraArgs:
+    - --collector.disable-defaults
     - --collector.cpu
     - --collector.diskstats
     - --collector.netdev
     - --collector.netstat
     - --collector.filesystem
+<<<<<<< Updated upstream
+=======
+  resources:
+>>>>>>> Stashed changes
   resources:
     limits:
       cpu: 100m
