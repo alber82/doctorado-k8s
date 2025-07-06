@@ -23,7 +23,6 @@ prometheus-node-exporter:
     - --collector.netdev
     - --collector.netstat
     - --collector.filesystem
-
   resources:
     limits:
       cpu: 100m

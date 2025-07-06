@@ -57,7 +57,7 @@ affinity:
               operator: In
               values:
                 - worker04
-  
+
 ## Tolerations for pod assignment
 ## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 ##
@@ -153,7 +153,7 @@ config:
             healthy: 1
             problem: 2
             critical: 3
-  outputs: 
+  outputs:
     - influxdb_v2:
         urls: ["http://influxdb-influxdb2:80"]
         token: "klsjdaioqwehrqoikdnmxcq"
@@ -164,36 +164,24 @@ config:
 #         service_address: ":1234"
 #         paths: ["/receive"]
 #         data_format: "prometheusremotewrite"
-    inputs:
-      - prometheus:
-          monitor_kubernetes_pods: true
-          namespace: monitoring
-          label_selector: "app.kubernetes.io/name=node-exporter"
-#           tls_ca: "/etc/telegraf/ca/ca.crt"
-#           insecure_skip_verify: false
-          metric_include:
-            - "node_cpu_seconds_total"
-            - "node_disk_.*_bytes_total"
-            - "node_network_.*_bytes_total"
-#     - prometheus:
-#         urls: ["http://192.168.1.221:9100/metrics",  "http://192.168.1.222:9100/metrics", "http://192.168.1.223:9100/metrics", "http://192.168.1.224:9100/metrics", "http://192.168.1.225:9100/metrics"]
-#         metric_include:  ["node_cpu_seconds_total", "node_disk_written_bytes_total", "node_network_receive_bytes_total"]
-#         interval: "30s"
-#     - nginx:
-#         urls: ["http://nginx-server.nginx/status"]
-#         tagexclude: ["url"]
-#         tags:
-#           instance: "$HOSTNAME"
-#           node: "$KUBERNETES_NODE_NAME"
-#           pod: "$KUBERNETES_POD_NAME"
-#    - http_response:
-#         urls: ["http://nginx-server.nginx"]
-#         response_timeout: "5s"
-#         method: "GET"
-#         tags:
-#           instance: "$HOSTNAME"
-#           node: "$KUBERNETES_NODE_NAME"
-#           pod: "$KUBERNETES_POD_NAME"
+    - prometheus:
+        monitor_kubernetes_pods: true
+        namespace: monitoring
+        label_selector: "app.kubernetes.io/name=prometheus-node-exporter"
+        metric_include:
+          - "node_cpu_seconds_total"
+          - "node_disk_reads_completed_total"
+          - "node_disk_writes_completed_total"
+          - "node_disk_read_bytes_total"
+          - "node_disk_written_bytes_total"
+          - "node_filesystem_size_bytes"
+          - "node_filesystem_free_bytes"
+          - "node_filesystem_avail_bytes"
+          - "node_filesystem_files"
+          - "node_network_receive_bytes_total"
+          - "node_network_transmit_bytes_total"
+          - "node_network_receive_packets_total"
+          - "node_network_transmit_packets_total"
 metrics:
   health:
     enabled: false
