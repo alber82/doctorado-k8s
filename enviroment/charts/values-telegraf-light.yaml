@@ -76,9 +76,7 @@ updateStrategy: {}
 #    maxSurge: 1
 
 service:
-  enabled: true
-  type: ClusterIP
-  annotations: {}
+  enabled: false
 rbac:
   # Specifies whether RBAC resources should be created
   create: true
@@ -131,12 +129,12 @@ serviceAccount:
 ## ref: https://docs.influxdata.com/telegraf/v1.1/administration/configuration/
 config:
   agent:
-    interval: "10s"
+    interval: "15s"
     round_interval: true
     metric_batch_size: 10000
     metric_buffer_limit: 200000
     collection_jitter: "0s"
-    flush_interval: "10s"
+    flush_interval: "15s"
     flush_jitter: "0s"
     precision: ""
     debug: true
@@ -159,29 +157,29 @@ config:
         token: "klsjdaioqwehrqoikdnmxcq"
         organization: "uclm"
         bucket: "doctorado"
+        namepass:
+        - node_cpu_seconds_total
+        - node_disk_reads_completed_total
+        - node_disk_writes_completed_total
+        - node_disk_read_bytes_total
+        - node_disk_written_bytes_total
+        - node_filesystem_size_bytes
+        - node_filesystem_free_bytes
+        - node_filesystem_avail_bytes
+        - node_filesystem_files
+        - node_network_receive_bytes_total
+        - node_network_transmit_bytes_total
+        - node_network_receive_packets_total
+        - node_network_transmit_packets_total          
   inputs:
-#     - http_listener_v2:
-#         service_address: ":1234"
-#         paths: ["/receive"]
-#         data_format: "prometheusremotewrite"
     - prometheus:
-        monitor_kubernetes_pods: true
-        namespace: monitoring
-        label_selector: "app.kubernetes.io/name=prometheus-node-exporter"
-        metric_include:
-          - "node_cpu_seconds_total"
-          - "node_disk_reads_completed_total"
-          - "node_disk_writes_completed_total"
-          - "node_disk_read_bytes_total"
-          - "node_disk_written_bytes_total"
-          - "node_filesystem_size_bytes"
-          - "node_filesystem_free_bytes"
-          - "node_filesystem_avail_bytes"
-          - "node_filesystem_files"
-          - "node_network_receive_bytes_total"
-          - "node_network_transmit_bytes_total"
-          - "node_network_receive_packets_total"
-          - "node_network_transmit_packets_total"
+        urls:
+          - http://192.168.1.220:9100/metrics
+          - http://192.168.1.221:9100/metrics
+          - http://192.168.1.222:9100/metrics
+          - http://192.168.1.223:9100/metrics
+          - http://192.168.1.224:9100/metrics
+          - http://192.168.1.225:9100/metrics
 metrics:
   health:
     enabled: false
@@ -208,3 +206,4 @@ pdb:
 # - name: http
 #   containerPort: 9273
 #   protocol: TCP
+
