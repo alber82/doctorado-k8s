@@ -145,7 +145,6 @@ config:
     omit_hostname: false
 
   processors:
-
     - enum:
         mapping:
           field: "status"
@@ -159,10 +158,26 @@ config:
         namepass: ["node_cpu_seconds_total"]
         source: |
           def apply(metric):
-              url = metric.tags.get("url", "")
-              ip = "192.168.1.220"  # prueba forzada
-              metric.tags["nodo"] = "master01"
-              metric.fields["rpi_power_watts"] = 7.77
+              if metric.name != "node_cpu_seconds_total":
+                  return metric
+
+              if metric.tags.get("mode") != "idle":
+                  return metric
+
+              v = metric.fields.get("value")
+              if v is None:
+                  return metric
+
+              idle = float(v)
+              idle_w = 4.5
+              load_w = 10.0
+
+              cpu_usage = 100 - (idle * 100)
+              power = idle_w + (cpu_usage / 100) * (load_w - idle_w)
+              power_rounded = int(power * 100) / 100.0
+
+              metric.fields["rpi_power_watts"] = power_rounded
+
               return metric
   outputs:
     - influxdb_v2:
