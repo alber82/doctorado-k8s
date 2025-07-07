@@ -523,7 +523,7 @@ extraArgs:
     - --collector.netdev
     - --collector.netstat
     - --collector.filesystem
-#    - --web.config.file=/etc/node_exporter/web-config.yml
+    - --web.config.file=/etc/node_exporter/web-config.yml
 ## Additional mounts from the host to node-exporter container
 ##
 extraHostVolumeMounts: []
@@ -537,12 +537,12 @@ extraHostVolumeMounts: []
 
 ## Additional configmaps to be mounted.
 ##
-configmaps: []
-  - name: tls-secret
+configmaps: 
+  - name: node-exporter-web-config
     mountPath: /etc/node_exporter
 
-secrets: []
-  - name: tls-cert
+secrets: 
+  - name: prometheus-tls
     mountPath: /tls
 
 ## Override the deployment namespace
