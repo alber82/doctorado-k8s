@@ -165,7 +165,7 @@ config:
                   return metric
 
               v = metric.fields.get("value")
-              if v is None:
+              if v == None:
                   return metric
 
               idle = float(v)
@@ -174,9 +174,9 @@ config:
 
               cpu_usage = 100 - (idle * 100)
               power = idle_w + (cpu_usage / 100) * (load_w - idle_w)
-              power_rounded = int(power * 100) / 100.0
+              power = int(power * 100) / 100.0
 
-              metric.fields["rpi_power_watts"] = power_rounded
+              metric.fields["rpi_power_watts"] = power
 
               return metric
   outputs:
