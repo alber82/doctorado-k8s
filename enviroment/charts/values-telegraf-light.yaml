@@ -154,59 +154,39 @@ config:
             healthy: 1
             problem: 2
             critical: 3
+
     - starlark:
         namepass: ["node_cpu_seconds_total"]
         source: |
           def apply(metric):
-              url = metric.tags.get("url", "")
-              ip = ""
+              if metric.name != "node_cpu_seconds_total":
+                  return metric
 
-              parts = url.split("://")
-              if len(parts) > 1:
-                  ip_port = parts[1].split(":")
-                  if len(ip_port) > 0:
-                      ip = ip_port[0]
+              if metric.tags.get("mode") != "idle":
+                  return metric
 
-              ip_map = {
-                  "192.168.1.220": "master01",
-                  "192.168.1.221": "worker01",
-                  "192.168.1.222": "worker02",
-                  "192.168.1.223": "worker03",
-                  "192.168.1.224": "worker04",
-                  "192.168.1.225": "worker05"
-              }
+              v = metric.fields.get("value")
+              if v == None:
+                  return metric
 
-              metric.tags["nodo"] = ip_map.get(ip, "desconocido")
+              idle = float(v)
+              idle_w = 4.5
+              load_w = 10.0
 
-              if metric.name == "node_cpu_seconds_total" and metric.tags.get("mode") == "idle":
-                  v = metric.fields.get("value")
-                  if v == None:
-                      return metric
+              cpu_usage = 100 - (idle * 100)
+              power = idle_w + (cpu_usage / 100) * (load_w - idle_w)
+              power_rounded = int(power * 100) / 100.0
 
-                  idle = float(v)
-
-                  if ip in ["192.168.1.220", "192.168.1.221", "192.168.1.222", "192.168.1.223"]:
-                      idle_w = 4.5
-                      load_w = 10.0
-                  elif ip in ["192.168.1.224", "192.168.1.225"]:
-                      idle_w = 3.4
-                      load_w = 6.4
-                  else:
-                      idle_w = 3.5
-                      load_w = 7.0
-
-                  cpu_usage = 100 - (idle * 100)
-                  power = idle_w + (cpu_usage / 100) * (load_w - idle_w)
-                  power_rounded = int(power * 100) / 100.0
-
-                  metric.fields["rpi_power_watts"] = power_rounded
+              metric.fields["rpi_power_watts"] = power_rounded
 
               return metric
 
     - override:
-        namepass: ["node_cpu_seconds_total"]
-        fieldinclude: ["rpi_power_watts"]
-        metric_name: "rpi_power"
+        namepass:
+          - node_cpu_seconds_total
+        fieldinclude:
+          - rpi_power_watts
+        metric_name: rpi_power
   outputs:
     - influxdb_v2:
         urls: ["http://influxdb-influxdb2:80"]
