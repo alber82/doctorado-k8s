@@ -197,7 +197,11 @@ config:
 
                   cpu_usage = 100 - (idle * 100)
                   power = idle_w + (cpu_usage / 100) * (load_w - idle_w)
-                  metric.fields["rpi_power_watts"] = round(power, 2)
+
+                  # Redondear manualmente a 2 decimales
+                  power_rounded = int(power * 100) / 100.0
+
+                  metric.fields["rpi_power_watts"] = power_rounded
 
               return metric
   outputs:
