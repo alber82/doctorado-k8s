@@ -24,7 +24,7 @@ prometheus-node-exporter:
     - --collector.netdev
     - --collector.netstat
     - --collector.filesystem
-      #    - --web.config.file=/etc/node_exporter/web-config.yml
+    - --web.config.file=/etc/node_exporter/web-config.yml
 
   extraVolumeMounts:
     - name: tls-config

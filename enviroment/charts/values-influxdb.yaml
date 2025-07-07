@@ -199,6 +199,6 @@ ingress:
 pdb:
   ## Specifies whether a Pod disruption budget should be created
   ##
-  create: true
+  create: false
   minAvailable: 1
   # maxUnavailable: 1

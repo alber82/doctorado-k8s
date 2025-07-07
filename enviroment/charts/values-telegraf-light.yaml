@@ -23,15 +23,6 @@ env:
 # An older "volumeMounts" key was previously added which will likely
 # NOT WORK as you expect. Please use this newer configuration.
 
-# volumes:
-# - name: telegraf-output-influxdb2
-#   configMap:
-#     name: "telegraf-output-influxdb2"
-# mountPoints:
-# - name: telegraf-output-influxdb2
-#   mountPath: /etc/telegraf/conf.d
-#   subPath: influxdb2.conf
-
 volumes:
   - name: telegraf-ca
     secret:
@@ -210,7 +201,7 @@ metrics:
 pdb:
   ## Specifies whether a Pod disruption budget should be created
   ##
-  create: true
+  create: false
   minAvailable: 1
   # maxUnavailable: 1
 
@@ -219,12 +210,3 @@ pdb:
 #   containerPort: 9273
 #   protocol: TCP
 
-extraVolumes:
-  - name: telegraf-ca
-    secret:
-      secretName: telegraf-ca
-
-extraVolumeMounts:
-  - name: telegraf-ca
-    mountPath: /etc/telegraf/ca
-    readOnly: true
