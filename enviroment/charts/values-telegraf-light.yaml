@@ -156,6 +156,9 @@ config:
     - starlark:
         namepass: ["node_cpu_seconds_total"]
         source: |
+          import time
+
+          # Estado intermedio por IP
           state = {}
 
           def apply(metric):
@@ -166,7 +169,7 @@ config:
               if not url:
                   return metric
 
-              # Extraer IP
+              # Extraer IP del tag URL
               parts = url.split("://")
               ip = "unknown"
               if len(parts) > 1:
@@ -174,13 +177,12 @@ config:
                   ip = host.split(":")[0]
               metric.tags["ip"] = ip
 
-              # Identificador único por nodo y CPU
               cpu = metric.tags.get("cpu", "all")
-              key = "{}_{}".format(ip, cpu)
+              key = ip + "_" + cpu
               now = float(metric.time)
               idle_now = float(metric.fields.get("counter", 0))
 
-              # Buscar estado anterior
+              # Inicializar estado
               prev = state.get(key)
               if not prev:
                   state[key] = {"idle": idle_now, "time": now}
@@ -200,7 +202,27 @@ config:
               # Guardar nuevo estado
               state[key] = {"idle": idle_now, "time": now}
 
-              # Potencia estimada por tipo de RPi
+              # Guardar parcial por IP
+              if not "usage_list" in state:
+                  state["usage_list"] = {}
+              if not ip in state["usage_list"]:
+                  state["usage_list"][ip] = []
+
+              state["usage_list"][ip].append(usage_frac)
+
+              # Solo procesar una vez por nodo, cuando la CPU sea "0"
+              if cpu != "0":
+                  return metric
+
+              # Calcular media de uso
+              usages = state["usage_list"].get(ip, [])
+              if not usages:
+                  return metric
+
+              avg_usage = sum(usages) / len(usages)
+              del state["usage_list"][ip]
+
+              # Calcular potencia estimada según IP
               if ip in ["192.168.1.220", "192.168.1.221", "192.168.1.222", "192.168.1.223"]:
                   idle_w = 4.5
                   load_w = 10.0
@@ -211,15 +233,82 @@ config:
                   idle_w = 3.5
                   load_w = 7.0
 
-              power = idle_w + usage_frac * (load_w - idle_w)
-              power = float(int(power * 10)) / 10.0  # redondear a 1 decimal
+              power = idle_w + avg_usage * (load_w - idle_w)
+              power = float(int(power * 10)) / 10.0  # redondeo 1 decimal
 
-              # Nueva métrica
+              # Emitir nueva métrica por nodo
               m = Metric("rpi_power_watts")
               m.fields["value"] = power
               m.tags["ip"] = ip
               m.time = metric.time
               return [metric, m]
+#     - starlark:
+#         namepass: ["node_cpu_seconds_total"]
+#         source: |
+#           state = {}
+#
+#           def apply(metric):
+#               if metric.tags.get("mode") != "idle":
+#                   return metric
+#
+#               url = metric.tags.get("url", "")
+#               if not url:
+#                   return metric
+#
+#               # Extraer IP
+#               parts = url.split("://")
+#               ip = "unknown"
+#               if len(parts) > 1:
+#                   host = parts[1].split("/")[0]
+#                   ip = host.split(":")[0]
+#               metric.tags["ip"] = ip
+#
+#               # Identificador único por nodo y CPU
+#               cpu = metric.tags.get("cpu", "all")
+#               key = "{}_{}".format(ip, cpu)
+#               now = float(metric.time)
+#               idle_now = float(metric.fields.get("counter", 0))
+#
+#               # Buscar estado anterior
+#               prev = state.get(key)
+#               if not prev:
+#                   state[key] = {"idle": idle_now, "time": now}
+#                   return metric
+#
+#               idle_delta = idle_now - prev["idle"]
+#               time_delta = (now - prev["time"]) / 1e9  # ns → s
+#
+#               if idle_delta < 0 or time_delta <= 0:
+#                   return metric
+#
+#               idle_frac = idle_delta / time_delta
+#               if idle_frac > 1:
+#                   idle_frac = 1.0
+#               usage_frac = 1.0 - idle_frac
+#
+#               # Guardar nuevo estado
+#               state[key] = {"idle": idle_now, "time": now}
+#
+#               # Potencia estimada por tipo de RPi
+#               if ip in ["192.168.1.220", "192.168.1.221", "192.168.1.222", "192.168.1.223"]:
+#                   idle_w = 4.5
+#                   load_w = 10.0
+#               elif ip in ["192.168.1.224", "192.168.1.225"]:
+#                   idle_w = 3.4
+#                   load_w = 6.4
+#               else:
+#                   idle_w = 3.5
+#                   load_w = 7.0
+#
+#               power = idle_w + usage_frac * (load_w - idle_w)
+#               power = float(int(power * 10)) / 10.0  # redondear a 1 decimal
+#
+#               # Nueva métrica
+#               m = Metric("rpi_power_watts")
+#               m.fields["value"] = power
+#               m.tags["ip"] = ip
+#               m.time = metric.time
+#               return [metric, m]
   outputs:
     - influxdb_v2:
         urls: ["http://influxdb-influxdb2:80"]
