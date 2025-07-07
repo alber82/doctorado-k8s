@@ -143,7 +143,9 @@ config:
     logfile: ""
     hostname: "$HOSTNAME"
     omit_hostname: false
+
   processors:
+
     - enum:
         mapping:
           field: "status"
@@ -160,7 +162,6 @@ config:
               url = metric.tags.get("url", "")
               ip = ""
 
-              # Extraer IP desde URL sin usar re
               parts = url.split("://")
               if len(parts) > 1:
                   ip_port = parts[1].split(":")
@@ -197,13 +198,15 @@ config:
 
                   cpu_usage = 100 - (idle * 100)
                   power = idle_w + (cpu_usage / 100) * (load_w - idle_w)
-
-                  # Redondear manualmente a 2 decimales
                   power_rounded = int(power * 100) / 100.0
 
                   metric.fields["rpi_power_watts"] = power_rounded
 
               return metric
+    - clone:
+        namepass: ["node_cpu_seconds_total"]
+        fieldpass: ["rpi_power_watts"]
+        dest: "rpi_power"
   outputs:
     - influxdb_v2:
         urls: ["http://influxdb-influxdb2:80"]
@@ -223,7 +226,8 @@ config:
         - node_network_receive_bytes_total
         - node_network_transmit_bytes_total
         - node_network_receive_packets_total
-        - node_network_transmit_packets_total          
+        - node_network_transmit_packets_total
+        - rpi_power
   inputs:
     - prometheus:
         tls_ca: "/etc/telegraf/ca/ca.crt"
