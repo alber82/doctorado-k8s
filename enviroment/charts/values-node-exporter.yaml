@@ -102,29 +102,9 @@ kubeRBACProxy:
   ## Additional volume mounts in the kube-rbac-proxy container
   ## See extraVolumes below
   extraVolumeMounts: []
-    - name: tls-secret
-      mountPath: /etc/node_exporter
-      readOnly: true
-    - name: tls-cert
-      mountPath: /tls
-      readOnly: true
-
-## Extra volumes to become available in the pod
-  extraVolumes:
-    - name: tls-secret
-      secret:
-        secretName: prometheus-tls
-        items:
-          - key: web-config.yml
-            path: web-config.yml
-    - name: tls-cert
-      secret:
-        secretName: prometheus-tls
-        items:
-          - key: tls.crt
-            path: tls.crt
-          - key: tls.key
-            path: tls.key
+    # - name: extra-volume
+    #   mountPath: /extra
+    #   readOnly: true
 
   ## tls enables using TLS resources from a volume on secret referred to in tlsSecret below.
   ## When enabling tlsClientAuth, client CA certificate must be set in tlsSecret.caItem.
@@ -138,7 +118,7 @@ kubeRBACProxy:
 ## If enabled, volume volumeName gets created on secret secretName.
 ## The volume's resources will be used by kube-rbac-proxy if kubeRBACProxy.tls.enabled is set.
 tlsSecret:
-  enabled: false
+  enabled: true
   ## Key with client CA certificate (optional)
   caItem: ""
   ## Key with certificate
@@ -146,9 +126,9 @@ tlsSecret:
   ## Key with private key
   keyItem: tls.key
   ## Name of an existing secret
-  secretName: prometheus-node-exporter-tls
+  secretName: prometheus-tls
   ## Name of the volume to be created
-  volumeName: prometheus-node-exporter-tls
+  volumeName: tls-cert
 
 ## Service configuration
 service:
@@ -519,7 +499,7 @@ extraArgs:
     - --collector.netdev
     - --collector.netstat
     - --collector.filesystem
-#     - --web.config.file=/etc/node_exporter/web-config.yml
+    - --web.config.file=/etc/node_exporter/web-config.yml
 ## Additional mounts from the host to node-exporter container
 ##
 extraHostVolumeMounts: []
@@ -534,12 +514,12 @@ extraHostVolumeMounts: []
 ## Additional configmaps to be mounted.
 ##
 configmaps: []
-# - name: <configMapName>
-#   mountPath: <mountPath>
+  - name: tls-secret
+    mountPath: /etc/node_exporter
 
 secrets: []
-# - name: <secretName>
-#   mountPath: <mountPatch>
+  - name: tls-cert
+    mountPath: /tls
 
 ## Override the deployment namespace
 ##
@@ -639,7 +619,31 @@ extraManifests: []
   #   data:
   #     extra-data: "value"
 
+## Extra volume mounts in the node-exporter container
+# extraVolumeMounts:
+#   - name: tls-secret
+#     mountPath: /etc/node_exporter
+#     readOnly: true
+#   - name: tls-cert
+#     mountPath: /tls
+#     readOnly: true
 
+## Extra volumes to become available in the pod
+# extraVolumes:
+#   - name: tls-secret
+#     secret:
+#       secretName: prometheus-tls
+#       items:
+#         - key: web-config.yml
+#           path: web-config.yml
+#   - name: tls-cert
+#     secret:
+#       secretName: prometheus-tls
+#       items:
+#         - key: tls.crt
+#           path: tls.crt
+#         - key: tls.key
+#           path: tls.key
 
 
 # Override version of app, required if image.tag is defined and does not follow semver
