@@ -180,13 +180,6 @@ config:
               metric.fields["rpi_power_watts"] = power_rounded
 
               return metric
-
-    - override:
-        namepass:
-          - node_cpu_seconds_total
-        fieldinclude:
-          - rpi_power_watts
-        metric_name: rpi_power
   outputs:
     - influxdb_v2:
         urls: ["http://influxdb-influxdb2:80"]
