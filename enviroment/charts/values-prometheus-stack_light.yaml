@@ -24,18 +24,18 @@ prometheus-node-exporter:
     - --collector.netdev
     - --collector.netstat
     - --collector.filesystem
-    - --web.config.file=/etc/node_exporter/web-config.yml
+      #    - --web.config.file=/etc/node_exporter/web-config.yml
 
-  volumeMounts:
-    - name: tls-secret
+  extraVolumeMounts:
+    - name: tls-config
       mountPath: /etc/node_exporter
       readOnly: true
     - name: tls-cert
       mountPath: /tls
       readOnly: true
 
-  volumes:
-    - name: tls-secret
+  extraVolumes:
+    - name: tls-config
       secret:
         secretName: prometheus-tls
         items:
@@ -48,7 +48,7 @@ prometheus-node-exporter:
           - key: tls.crt
             path: tls.crt
           - key: tls.key
-            path: tls.key
+            path: tls.key      
   resources:
     limits:
       cpu: 100m

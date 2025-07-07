@@ -18,6 +18,30 @@ fullnameOverride: ""
 # Default Kubernetes value is set to 10
 revisionHistoryLimit: 10
 
+extraVolumeMounts:
+  - name: tls-secret
+    mountPath: /etc/node_exporter
+    readOnly: true
+  - name: tls-cert
+    mountPath: /tls
+    readOnly: true
+
+extraVolumes:
+  - name: tls-secret
+    secret:
+      secretName: prometheus-tls
+      items:
+        - key: web-config.yml
+          path: web-config.yml
+  - name: tls-cert
+    secret:
+      secretName: prometheus-tls
+      items:
+        - key: tls.crt
+          path: tls.crt
+        - key: tls.key
+          path: tls.key  
+
 global:
   # To help compatibility with other charts which use global.imagePullSecrets.
   # Allow either an array of {name: pullSecret} maps (k8s-style), or an array of strings (more common helm-style).
@@ -499,7 +523,7 @@ extraArgs:
     - --collector.netdev
     - --collector.netstat
     - --collector.filesystem
-    - --web.config.file=/etc/node_exporter/web-config.yml
+#    - --web.config.file=/etc/node_exporter/web-config.yml
 ## Additional mounts from the host to node-exporter container
 ##
 extraHostVolumeMounts: []
@@ -644,7 +668,6 @@ extraManifests: []
 #           path: tls.crt
 #         - key: tls.key
 #           path: tls.key
-
 
 # Override version of app, required if image.tag is defined and does not follow semver
 version: ""
