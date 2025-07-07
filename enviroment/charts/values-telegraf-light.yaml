@@ -32,6 +32,16 @@ env:
 #   mountPath: /etc/telegraf/conf.d
 #   subPath: influxdb2.conf
 
+volumes:
+  - name: telegraf-ca
+    secret:
+      secretName: telegraf-ca
+
+mountPoints:
+  - name: telegraf-ca
+    mountPath: /etc/telegraf/ca
+    readOnly: true      
+
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 resources: {}
@@ -174,14 +184,14 @@ config:
   inputs:
     - prometheus:
         tls_ca: "/etc/telegraf/ca/ca.crt"
-        insecure_skip_verify: false
+        insecure_skip_verify: true
         urls:
-          - http://192.168.1.220:9100/metrics
-          - http://192.168.1.221:9100/metrics
-          - http://192.168.1.222:9100/metrics
-          - http://192.168.1.223:9100/metrics
-          - http://192.168.1.224:9100/metrics
-          - http://192.168.1.225:9100/metrics
+          - https://192.168.1.220:9100/metrics
+          - https://192.168.1.221:9100/metrics
+          - https://192.168.1.222:9100/metrics
+          - https://192.168.1.223:9100/metrics
+          - https://192.168.1.224:9100/metrics
+          - https://192.168.1.225:9100/metrics
 metrics:
   health:
     enabled: false
