@@ -156,20 +156,19 @@ config:
     - starlark:
         namepass: ["node_cpu_seconds_total"]
         source: |
-          import time
-
           state = {}
 
           def apply(metric):
               if metric.tags.get("mode") != "idle":
                   return metric
 
-              url = metric.tags.get("url", "")
+              url = metric.tags.get("url")
               if not url:
                   return metric
 
-              parts = url.split("://")
+              # Extraer IP de la URL
               ip = "unknown"
+              parts = url.split("://")
               if len(parts) > 1:
                   host = parts[1].split("/")[0]
                   ip = host.split(":")[0]
@@ -186,15 +185,12 @@ config:
                   return metric
 
               idle_delta = idle_now - prev["idle"]
-              time_delta = (now - prev["time"]) / 1e9
+              time_delta = (now - prev["time"]) / 1e9  # ns → s
 
               if idle_delta < 0 or time_delta <= 0:
                   return metric
 
-              idle_frac = idle_delta / time_delta
-              if idle_frac > 1:
-                  idle_frac = 1.0
-              usage_frac = 1.0 - idle_frac
+              usage_frac = 1.0 - (idle_delta / time_delta)
 
               state[key] = {"idle": idle_now, "time": now}
 
@@ -205,14 +201,15 @@ config:
 
               state["usage_list"][ip].append(usage_frac)
 
+              # Solo generar métrica una vez por nodo
               if cpu != "0":
                   return metric
 
-              usages = state["usage_list"].get(ip, [])
-              if not usages:
+              usage_vals = state["usage_list"].get(ip, [])
+              if not usage_vals:
                   return metric
 
-              avg_usage = sum(usages) / len(usages)
+              avg_usage = sum(usage_vals) / len(usage_vals)
               del state["usage_list"][ip]
 
               if ip in ["192.168.1.220", "192.168.1.221", "192.168.1.222", "192.168.1.223"]:
@@ -236,6 +233,7 @@ config:
               m.tags["ip"] = ip
               m.tags["modelo"] = modelo
               m.time = metric.time
+
               return [metric, m]
   outputs:
     - influxdb_v2:
