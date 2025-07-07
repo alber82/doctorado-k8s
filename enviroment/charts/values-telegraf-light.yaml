@@ -158,10 +158,26 @@ config:
         namepass: ["node_cpu_seconds_total"]
         source: |
           def apply(metric):
-              if metric.name != "node_cpu_seconds_total":
-                  return metric
+              # Añadir nodo siempre
+              url = metric.tags.get("url")
+              if url != None:
+                  if "192.168.1.220" in url:
+                      metric.tags["nodo"] = "master01"
+                  elif "192.168.1.221" in url:
+                      metric.tags["nodo"] = "worker01"
+                  elif "192.168.1.222" in url:
+                      metric.tags["nodo"] = "worker02"
+                  elif "192.168.1.223" in url:
+                      metric.tags["nodo"] = "worker03"
+                  elif "192.168.1.224" in url:
+                      metric.tags["nodo"] = "worker04"
+                  elif "192.168.1.225" in url:
+                      metric.tags["nodo"] = "worker05"
+                      if metric.name != "node_cpu_seconds_total":
+                          return metric
 
-              if metric.tags.get("mode") != "idle":
+              mode = metric.tags.get("mode")
+              if mode == None or mode != "idle":
                   return metric
 
               v = metric.fields.get("value")
