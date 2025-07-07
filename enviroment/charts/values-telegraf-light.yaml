@@ -156,6 +156,8 @@ config:
     - starlark:
         namepass: ["node_cpu_seconds_total"]
         source: |
+          import time
+
           state = {}
 
           def apply(metric):
@@ -166,7 +168,6 @@ config:
               if not url:
                   return metric
 
-              # Extraer IP
               parts = url.split("://")
               ip = "unknown"
               if len(parts) > 1:
@@ -174,20 +175,18 @@ config:
                   ip = host.split(":")[0]
               metric.tags["ip"] = ip
 
-              # Identificador único por nodo y CPU
               cpu = metric.tags.get("cpu", "all")
-              key = "{}_{}".format(ip, cpu)
+              key = ip + "_" + cpu
               now = float(metric.time)
               idle_now = float(metric.fields.get("counter", 0))
 
-              # Buscar estado anterior
               prev = state.get(key)
               if not prev:
                   state[key] = {"idle": idle_now, "time": now}
                   return metric
 
               idle_delta = idle_now - prev["idle"]
-              time_delta = (now - prev["time"]) / 1e9  # ns → s
+              time_delta = (now - prev["time"]) / 1e9
 
               if idle_delta < 0 or time_delta <= 0:
                   return metric
@@ -197,105 +196,47 @@ config:
                   idle_frac = 1.0
               usage_frac = 1.0 - idle_frac
 
-              # Guardar nuevo estado
               state[key] = {"idle": idle_now, "time": now}
 
-              # Potencia estimada por tipo de RPi
+              if not "usage_list" in state:
+                  state["usage_list"] = {}
+              if not ip in state["usage_list"]:
+                  state["usage_list"][ip] = []
+
+              state["usage_list"][ip].append(usage_frac)
+
+              if cpu != "0":
+                  return metric
+
+              usages = state["usage_list"].get(ip, [])
+              if not usages:
+                  return metric
+
+              avg_usage = sum(usages) / len(usages)
+              del state["usage_list"][ip]
+
               if ip in ["192.168.1.220", "192.168.1.221", "192.168.1.222", "192.168.1.223"]:
+                  modelo = "rpi5"
                   idle_w = 4.5
                   load_w = 10.0
               elif ip in ["192.168.1.224", "192.168.1.225"]:
+                  modelo = "rpi4"
                   idle_w = 3.4
                   load_w = 6.4
               else:
+                  modelo = "unknown"
                   idle_w = 3.5
                   load_w = 7.0
 
-              power = idle_w + usage_frac * (load_w - idle_w)
-              power = float(int(power * 10)) / 10.0  # redondear a 1 decimal
+              power = idle_w + avg_usage * (load_w - idle_w)
+              power = float(int(power * 10)) / 10.0
 
-              # Nueva métrica
               m = Metric("rpi_power_watts")
               m.fields["value"] = power
               m.tags["ip"] = ip
+              m.tags["modelo"] = modelo
               m.time = metric.time
-              return [metric, m]          
-#         namepass: ["node_cpu_seconds_total"]
-#         source: |
-#           state = {}
-#
-#           def apply(metric):
-#               if metric.name != "node_cpu_seconds_total" or metric.tags.get("mode") != "idle":
-#                   return metric
-#
-#               url = metric.tags.get("url", "")
-#               ip = ""
-#               if url:
-#                   try:
-#                       hostport = url.split("://", 1)[1]
-#                       host = hostport.split("/", 1)[0]
-#                       ip = host.split(":", 1)[0]
-#                   except:
-#                       ip = url
-#               if ip:
-#                   metric.tags.setdefault("ip", ip)
-#
-#               if ip in ["192.168.1.220", "192.168.1.221", "192.168.1.222", "192.168.1.223"]:
-#                   idleW = 4.5
-#                   loadW = 10.0
-#               elif ip in ["192.168.1.224", "192.168.1.225"]:
-#                   idleW = 3.4
-#                   loadW = 6.4
-#               else:
-#                   idleW = 3.5
-#                   loadW = 7.0
-#
-#               cpu_id = metric.tags.get("cpu") or "all"
-#               state_key = "{}_{}".format(ip, cpu_id)
-#               curr_value = metric.fields.get("counter")
-#               curr_time = float(metric.time)
-#
-#               usage_frac = 0.0
-#               prev = state.get(state_key)
-#               if prev:
-#                   idle_diff = float(curr_value) - prev["last_idle"]
-#                   time_diff = (curr_time - prev["last_time"]) / 1e9
-#                   if time_diff > 0 and idle_diff >= 0:
-#                       idle_frac = idle_diff / time_diff
-#                       if idle_frac > 1:
-#                           idle_frac = 1.0
-#                       usage_frac = 1.0 - idle_frac
-#               state[state_key] = {"last_idle": float(curr_value), "last_time": curr_time}
-#
-#               batch_key = "{}_batch".format(ip)
-#               batch = state.get(batch_key, {"usage_sum": 0.0, "count": 0, "last_out_time": 0})
-#               if curr_time <= batch.get("last_out_time", 0):
-#                   batch = {"usage_sum": 0.0, "count": 0, "last_out_time": batch.get("last_out_time", 0)}
-#
-#               batch["usage_sum"] += usage_frac
-#               batch["count"] += 1
-#
-#               new_metrics = [metric]
-#
-#               if batch["count"] >= 4:
-#                   avg_usage = batch["usage_sum"] / batch["count"]
-#                   power = idleW + (loadW - idleW) * avg_usage
-#                   power = float(int(power * 10)) / 10.0
-#
-#                   m = Metric("rpi_power_watts")
-#                   for k, v in metric.tags.items():
-#                       if k not in ["mode", "cpu"]:
-#                           m.tags[k] = v
-#                   m.fields["value"] = power
-#                   m.time = metric.time
-#                   new_metrics.append(m)
-#
-#                   batch["last_out_time"] = curr_time
-#                   batch["usage_sum"] = 0.0
-#                   batch["count"] = 0
-#
-#               state[batch_key] = batch
-#               return new_metrics
+              return [metric, m]
   outputs:
     - influxdb_v2:
         urls: ["http://influxdb-influxdb2:80"]
