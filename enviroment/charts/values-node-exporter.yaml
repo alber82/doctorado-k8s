@@ -102,9 +102,29 @@ kubeRBACProxy:
   ## Additional volume mounts in the kube-rbac-proxy container
   ## See extraVolumes below
   extraVolumeMounts: []
-    # - name: extra-volume
-    #   mountPath: /extra
-    #   readOnly: true
+    - name: tls-secret
+      mountPath: /etc/node_exporter
+      readOnly: true
+    - name: tls-cert
+      mountPath: /tls
+      readOnly: true
+
+## Extra volumes to become available in the pod
+  extraVolumes:
+    - name: tls-secret
+      secret:
+        secretName: prometheus-tls
+        items:
+          - key: web-config.yml
+            path: web-config.yml
+    - name: tls-cert
+      secret:
+        secretName: prometheus-tls
+        items:
+          - key: tls.crt
+            path: tls.crt
+          - key: tls.key
+            path: tls.key
 
   ## tls enables using TLS resources from a volume on secret referred to in tlsSecret below.
   ## When enabling tlsClientAuth, client CA certificate must be set in tlsSecret.caItem.
@@ -490,10 +510,16 @@ terminationMessageParams:
 
 ## Additional container arguments
 ##
-extraArgs: []
+extraArgs:
 #   - --collector.diskstats.ignored-devices=^(ram|loop|fd|(h|s|v)d[a-z]|nvme\\d+n\\d+p)\\d+$
 #   - --collector.textfile.directory=/run/prometheus
-
+    - --collector.disable-defaults
+    - --collector.cpu
+    - --collector.diskstats
+    - --collector.netdev
+    - --collector.netstat
+    - --collector.filesystem
+#     - --web.config.file=/etc/node_exporter/web-config.yml
 ## Additional mounts from the host to node-exporter container
 ##
 extraHostVolumeMounts: []
@@ -613,31 +639,7 @@ extraManifests: []
   #   data:
   #     extra-data: "value"
 
-## Extra volume mounts in the node-exporter container
-  extraVolumeMounts:
-    - name: tls-secret
-      mountPath: /etc/node_exporter
-      readOnly: true
-    - name: tls-cert
-      mountPath: /tls
-      readOnly: true
 
-## Extra volumes to become available in the pod
-  extraVolumes:
-    - name: tls-secret
-      secret:
-        secretName: prometheus-tls
-        items:
-          - key: web-config.yml
-            path: web-config.yml
-    - name: tls-cert
-      secret:
-        secretName: prometheus-tls
-        items:
-          - key: tls.crt
-            path: tls.crt
-          - key: tls.key
-            path: tls.key
 
 
 # Override version of app, required if image.tag is defined and does not follow semver
