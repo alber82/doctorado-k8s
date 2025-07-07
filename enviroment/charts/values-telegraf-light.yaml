@@ -160,7 +160,7 @@ config:
               url = metric.tags.get("url", "")
               ip = ""
 
-              # Extraer IP sin usar re
+              # Extraer IP desde URL sin usar re
               parts = url.split("://")
               if len(parts) > 1:
                   ip_port = parts[1].split(":")
@@ -179,10 +179,11 @@ config:
               metric.tags["nodo"] = ip_map.get(ip, "desconocido")
 
               if metric.name == "node_cpu_seconds_total" and metric.tags.get("mode") == "idle":
-                  try:
-                      idle = float(metric.fields.get("value", 0.0))
-                  except:
-                      idle = 0.0
+                  v = metric.fields.get("value")
+                  if v == None:
+                      return metric
+
+                  idle = float(v)
 
                   if ip in ["192.168.1.220", "192.168.1.221", "192.168.1.222", "192.168.1.223"]:
                       idle_w = 4.5
