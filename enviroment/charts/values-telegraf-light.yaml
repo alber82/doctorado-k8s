@@ -154,7 +154,6 @@ config:
             healthy: 1
             problem: 2
             critical: 3
-
     - starlark:
         namepass: ["node_cpu_seconds_total"]
         source: |
@@ -203,10 +202,11 @@ config:
                   metric.fields["rpi_power_watts"] = power_rounded
 
               return metric
-    - clone:
+
+    - override:
         namepass: ["node_cpu_seconds_total"]
-        fieldpass: ["rpi_power_watts"]
-        dest: "rpi_power"
+        fieldinclude: ["rpi_power_watts"]
+        metric_name: "rpi_power"
   outputs:
     - influxdb_v2:
         urls: ["http://influxdb-influxdb2:80"]
