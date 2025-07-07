@@ -47,6 +47,29 @@ Table: keys: [instance]
     192.168.1.224:9100                    1238806528
 
 
+----------------------
+
+
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.220:9100/metrics                     104263680
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.221:9100/metrics                       1507328
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.222:9100/metrics                       1069056
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.223:9100/metrics                     100225024
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.224:9100/metrics                      12419072
 
 
 influx query  'import "math"
@@ -100,11 +123,64 @@ Table: keys: [instance]
 ----------------------  ----------------------------
     192.168.1.225:9100                      33950217
 
+    192.168.1.220:9100                       5162835
+    192.168.1.221:9100                       2096448
+    192.168.1.222:9100                       1688380
+    192.168.1.223:9100                       1911362
+    192.168.1.224:9100                      90440045
+    192.168.1.225:9100                      33950217
 
+influx query  'import "math"
+First = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: ["url"], mode:"by")
+  |> keep(columns: ["url", "_value"])
+  |> first()
 
+Last = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: [ "url"], mode:"by")
+  |> keep(columns: ["url", "_value"])
+  |> last()
 
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
 
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.220:9100/metrics                       3308068
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.221:9100/metrics                       2292270
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.222:9100/metrics                       4099909
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.223:9100/metrics                      21138783
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.224:9100/metrics                       4141520
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.225:9100/metrics                      19993162
 
+http://192.168.1.220:9100/metrics                       3308068
+http://192.168.1.221:9100/metrics                       2292270
+http://192.168.1.222:9100/metrics                       4099909
+http://192.168.1.223:9100/metrics                      21138783
+http://192.168.1.224:9100/metrics                       4141520
+http://192.168.1.225:9100/metrics                      19993162
 
 Medias en espera
 

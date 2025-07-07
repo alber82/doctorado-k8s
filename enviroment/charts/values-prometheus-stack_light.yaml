@@ -24,10 +24,31 @@ prometheus-node-exporter:
     - --collector.netdev
     - --collector.netstat
     - --collector.filesystem
-<<<<<<< Updated upstream
-=======
-  resources:
->>>>>>> Stashed changes
+    - --web.config.file=/etc/node_exporter/web-config.yml
+
+  volumeMounts:
+    - name: tls-secret
+      mountPath: /etc/node_exporter
+      readOnly: true
+    - name: tls-cert
+      mountPath: /tls
+      readOnly: true
+
+  volumes:
+    - name: tls-secret
+      secret:
+        secretName: prometheus-tls
+        items:
+          - key: web-config.yml
+            path: web-config.yml
+    - name: tls-cert
+      secret:
+        secretName: prometheus-tls
+        items:
+          - key: tls.crt
+            path: tls.crt
+          - key: tls.key
+            path: tls.key
   resources:
     limits:
       cpu: 100m

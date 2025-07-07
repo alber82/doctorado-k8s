@@ -173,6 +173,8 @@ config:
         - node_network_transmit_packets_total          
   inputs:
     - prometheus:
+        tls_ca: "/etc/telegraf/ca/ca.crt"
+        insecure_skip_verify: false
         urls:
           - http://192.168.1.220:9100/metrics
           - http://192.168.1.221:9100/metrics
@@ -207,3 +209,12 @@ pdb:
 #   containerPort: 9273
 #   protocol: TCP
 
+extraVolumes:
+  - name: telegraf-ca
+    secret:
+      secretName: telegraf-ca
+
+extraVolumeMounts:
+  - name: telegraf-ca
+    mountPath: /etc/telegraf/ca
+    readOnly: true
