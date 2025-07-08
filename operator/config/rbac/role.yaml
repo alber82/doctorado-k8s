@@ -81,6 +81,7 @@ rules:
   - scheduler.uclm.es
   resources:
   - influxdbmetricsschedulers
+  - randomschedulers
   - tsmetricsschedulers
   verbs:
   - create
@@ -94,6 +95,7 @@ rules:
   - scheduler.uclm.es
   resources:
   - influxdbmetricsschedulers/finalizers
+  - randomschedulers/finalizers
   - tsmetricsschedulers/finalizers
   verbs:
   - update
@@ -101,6 +103,7 @@ rules:
   - scheduler.uclm.es
   resources:
   - influxdbmetricsschedulers/status
+  - randomschedulers/status
   - tsmetricsschedulers/status
   verbs:
   - get
