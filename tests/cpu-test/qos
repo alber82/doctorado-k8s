@@ -1,0 +1,51 @@
+¿Qué hace esta consulta?
+Agrupa los datos por nodo (node es una etiqueta que tú mismo inyectas con Telegraf).
+Calcula la diferencia de solicitudes entre intervalos de 1 minuto (aggregateWindow + derivative).
+Mide el throughput como peticiones por segundo (RPS) por nodo.
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -90m)
+  |> filter(fn: (r) =>
+      r._measurement == "nginx" and
+      r._field == "requests"
+  )
+  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)
+  |> derivative(unit: 1s, nonNegative: true)
+  |> group(columns: ["node"])
+  |> rename(columns: {_value: "throughput_rps"})
+  |> keep(columns: ["_time", "node", "throughput_rps"])'
+
+
+
+RESPONSE TIME
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -90m)
+  |> filter(fn: (r) => r._measurement == "http_response" and r._field == "response_time")
+  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+  |> group(columns: ["node"])
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["_time", "node", "avg_waiting"])'
+
+
+
+consumo
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -90m)
+  |> filter(fn: (r) => r._measurement == "rpi_power_watts" and r._field == "value")
+  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+  |> group(columns: ["ip"])
+  |> rename(columns: {_value: "avg_power_watts"})
+  |> keep(columns: ["_time", "ip", "avg_power_watts"])'
+
+
+
+  k get pods -n nginx -o wide
+
+
+
+k describe node
+
+cpu
+
