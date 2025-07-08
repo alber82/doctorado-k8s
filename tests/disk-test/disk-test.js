@@ -18,11 +18,11 @@ export let options = {
         { duration: '5m', target: 65 },   // Aumento del 5% a 893 RPS durante 10 minutos
         { duration: '5m', target: 70 },   // Aumento del 5% a 937 RPS durante 10 minutos
         { duration: '5m', target: 75 },   // Aumento del 5% a 984 RPS durante 10 minutos
-//        { duration: '5m', target: 80 }, // Aumento del 5% a 1,033 RPS durante 10 minutos
-//        { duration: '5m', target: 85 }, // Aumento del 5% a 1,085 RPS durante 10 minutos
-//        { duration: '5m', target: 90 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
-//        { duration: '5m', target: 95 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
-//        { duration: '5m', target: 100 }, // Aumento del 5% a 1,139 RPS durante 10 minutos	    
+        { duration: '5m', target: 80 }, // Aumento del 5% a 1,033 RPS durante 10 minutos
+        { duration: '5m', target: 85 }, // Aumento del 5% a 1,085 RPS durante 10 minutos
+        { duration: '5m', target: 90 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+        { duration: '5m', target: 95 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+        { duration: '5m', target: 100 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
     ],
 };
 

@@ -9,7 +9,7 @@ influx query 'from(bucket: "doctorado")
       r._measurement == "nginx" and
       r._field == "requests"
   )
-  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)
+  |> aggregateWindow(every: 3m, fn: max, createEmpty: false)
   |> derivative(unit: 1s, nonNegative: true)
   |> group(columns: ["node"])
   |> rename(columns: {_value: "throughput_rps"})
@@ -22,7 +22,7 @@ RESPONSE TIME
 influx query 'from(bucket: "doctorado")
   |> range(start: -90m)
   |> filter(fn: (r) => r._measurement == "http_response" and r._field == "response_time")
-  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+  |> aggregateWindow(every: 3m, fn: mean, createEmpty: false)
   |> group(columns: ["node"])
   |> rename(columns: {_value: "avg_waiting"})
   |> keep(columns: ["_time", "node", "avg_waiting"])'
@@ -34,7 +34,7 @@ consumo
 influx query 'from(bucket: "doctorado")
   |> range(start: -90m)
   |> filter(fn: (r) => r._measurement == "rpi_power_watts" and r._field == "value")
-  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+  |> aggregateWindow(every: 3m, fn: mean, createEmpty: false)
   |> group(columns: ["ip"])
   |> rename(columns: {_value: "avg_power_watts"})
   |> keep(columns: ["_time", "ip", "avg_power_watts"])'
@@ -49,3 +49,27 @@ k describe node
 
 cpu
 
+
+
+K8S
+
+
+nodos
+
+
+
+
+cpu
+
+
+memoria
+
+
+
+respusta
+
+
+request
+
+
+power

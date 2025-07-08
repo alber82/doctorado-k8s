@@ -44,7 +44,7 @@ export let options = {
 };
 
 export default function () {
-    let i = randomIntBetween(1, 200);
+    let i = randomIntBetween(30, 80);
     const response = http.get(`http://openresty-fibo.nginx/fibonacci?n=${i}`);
 
     check(response, {
