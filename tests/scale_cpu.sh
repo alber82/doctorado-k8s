@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEPLOYMENT_NAME="nginx-fibo"
+DEPLOYMENT_NAME="openresty-fibo"
 NAMESPACE="nginx"
 MAX_REPLICAS=15
 INCREMENT=1
