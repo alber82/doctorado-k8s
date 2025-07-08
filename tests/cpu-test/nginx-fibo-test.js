@@ -45,7 +45,7 @@ export let options = {
 
 export default function () {
     let i = randomIntBetween(1, 200);
-    const response = http.get(`http://uvicorn.nginx/next-fibonacci?number=${i}`);
+    const response = http.get(`http://openresty-fibo.nginx/fibonacci?n=${i}`);
 
     check(response, {
         'status was 200': r => r.status === 200,
