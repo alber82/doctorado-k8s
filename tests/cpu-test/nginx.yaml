@@ -1,3 +1,146 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-fibo-config
+  labels:
+    app: nginx-fibo
+data:
+  default.conf: |
+    server {
+        listen 80;
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+        }
+
+        # Exponer estadísticas en /status
+        location /status {
+            stub_status;
+            allow all;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-fibo-config
+  labels:
+    app: telegraf
+data:
+  telegraf.conf: |
+    [agent]
+      interval = "10s"
+      round_interval = true
+      metric_batch_size = 10000
+      metric_buffer_limit = 200000
+      collection_jitter = "0s"
+      flush_interval = "10s"
+      flush_jitter = "0s"
+      precision = ""
+      debug = true
+      quiet = false
+      logfile = ""
+      hostname = "$HOSTNAME"
+      omit_hostname = false
+
+    [[processors.enum]]
+      [[processors.enum.mapping]]
+        field = "status"
+        dest = "status_code"
+        [processors.enum.mapping.value_mappings]
+          healthy = 1
+          problem = 2
+          critical = 3
+
+    [[outputs.influxdb_v2]]
+      urls = ["http://influxdb-influxdb2.monitoring:80"]
+      token = "klsjdaioqwehrqoikdnmxcq"
+      organization = "uclm"
+      bucket = "doctorado"
+
+    [[inputs.nginx]]
+      urls = ["http://localhost/status"]
+      tagexclude = ["url"]
+      [inputs.nginx.tags]
+        instance = "$HOSTNAME"
+        node = "$KUBERNETES_NODE_NAME"
+        pod = "$KUBERNETES_POD_NAME"
+
+    [[inputs.http_response]]
+      urls = ["http://localhost"]
+      response_timeout = "10s"
+      method = "GET"
+      [inputs.http_response.tags]
+        instance = "$HOSTNAME"
+        node = "$KUBERNETES_NODE_NAME"
+        pod = "$KUBERNETES_POD_NAME"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-fibo
+  namespace: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-fibo
+  template:
+    metadata:
+      labels:
+        app: nginx-fibo
+    spec:
+      schedulerName: influxdbmetricsscheduler
+      containers:
+        - name: nginx
+          image: 192.168.1.229:5000/doctorado/nginx-fibonacci:0.0.0
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256M
+            limits:
+              cpu: 500m
+              memory: 256M
+          ports:
+            - containerPort: 80
+          volumeMounts:
+          - name: nginx-fibo-config-volume
+            mountPath: /etc/nginx/conf.d/default.conf
+            subPath: default.conf
+          env:
+          - name: KUBERNETES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: KUBERNETES_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        - name: telegraf
+          image: docker.io/library/telegraf:1.32.1-alpine
+          env:
+          - name: KUBERNETES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: KUBERNETES_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          volumeMounts:
+          - name: telegraf-fibo-config-volume
+            mountPath: /etc/telegraf/telegraf.conf
+            subPath: telegraf.conf
+        volumes:
+        - name: nginx-fibo-config-volume
+          configMap:
+            name: nginx-fibo-config
+        - name: telegraf-fibo-config-volume
+          configMap:
+            name: telegraf-fibo-config
+
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -9,24 +152,3 @@ spec:
     - port: 80
   selector:
     app: nginx-server
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-server
-  namespace: nginx
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: nginx-project
-  template:
-    metadata:
-      labels:
-        app: nginx-project
-    spec:
-      containers:
-        - name: nginx
-          image: 192.168.1.229:5000/doctorado/nginx-fibonacci:0.0.0
-          ports:
-            - containerPort: 80

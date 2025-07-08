@@ -1,3 +1,31 @@
+CONSUMOS
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "rpi_power_watts" and r._field == "value")
+  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+  |> map(fn: (r) => ({
+      r with consumo_kwh: (r._value / 1000.0) * (1.0 / 60.0)
+  }))
+  |> group(columns: ["ip"])
+  |> sum(column: "consumo_kwh")'
+
+
+from(bucket: "doctorado")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "rpi_power_watts" and r._field == "value")
+  |> group(columns: ["modelo"])
+  |> mean()
+
+
+from(bucket: "doctorado")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "rpi_power_watts" and r._field == "value")
+  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
+  |> group(columns: ["ip"])
+
+
+
 IDLE MEASURMENT
 
 influx query 'import "math"

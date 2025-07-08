@@ -46,7 +46,5 @@ export default function () {
     const res = http.get('http://nginx.nginx');
     check(res, { 'is status 200': (r) => r.status === 200 });
 
-//    if (__VU % 10 === 0) {
-//        __VU.gc();  // Forzar liberación de memoria cada 10 VUs
-//    }
+
 }
