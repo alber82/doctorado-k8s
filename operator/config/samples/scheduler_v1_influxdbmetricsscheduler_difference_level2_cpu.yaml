@@ -54,7 +54,7 @@ spec:
     name: "node_cpu_seconds_total"
     startDate: "-20m"
     endDate: "now()"
-    operation: "sum"
+    operation: "difference"
     priorityOrder: "desc"
     filters:
     - "fn: (r) => r['mode'] == 'user'"

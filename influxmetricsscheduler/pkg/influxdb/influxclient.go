@@ -226,7 +226,7 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				return nil, err
 			}
 
-			priorityMap[strings.TrimLeft(strings.Split(fmt.Sprintf("%s", result.Record().ValueByKey("url")), ":")[0], "https://")] = int64(float)
+			priorityMap[strings.Split(strings.TrimLeft(fmt.Sprintf("%s", result.Record().ValueByKey("url")), "https://"), ":")[0]] = int64(float)
 			// Access data
 			log.Info(fmt.Printf("url: %s  %f\n", result.Record().ValueByKey("url"), float))
 		}
