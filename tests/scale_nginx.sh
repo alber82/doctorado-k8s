@@ -2,7 +2,7 @@
 
 DEPLOYMENT_NAME="nginx-deployment"
 NAMESPACE="nginx"
-MAX_REPLICAS=15
+MAX_REPLICAS=20
 INCREMENT=1
 INTERVAL=300  # 5 minutos en segundos
 

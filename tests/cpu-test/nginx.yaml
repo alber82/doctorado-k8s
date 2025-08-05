@@ -115,7 +115,7 @@ spec:
       labels:
         app: openresty-fibo
     spec:
-#       schedulerName: influxdbmetricsscheduler
+      schedulerName: influxdbmetricsschedulerdisk
       containers:
         - name: openresty
           image: openresty/openresty:alpine
