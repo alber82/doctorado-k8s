@@ -11,7 +11,7 @@ COPY tests/apps/disk-test/package*.json ./
 RUN npm install
 
 # Copiar el resto del código del servidor
-COPY . .
+COPY tests/apps/disk-test/ . 
 
 # Exponer el puerto donde el servidor escucha
 EXPOSE 3000
