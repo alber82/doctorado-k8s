@@ -66,6 +66,7 @@ data:
         instance = "$HOSTNAME"
         node = "$KUBERNETES_NODE_NAME"
         pod = "$KUBERNETES_POD_NAME"
+        node_ip  = "$NODE_IP"    
 
     [[inputs.http_response]]
       urls = ["http://localhost"]
@@ -75,6 +76,7 @@ data:
         instance = "$HOSTNAME"
         node = "$KUBERNETES_NODE_NAME"
         pod = "$KUBERNETES_POD_NAME"
+        node_ip  = "$NODE_IP"
 
 ---
 apiVersion: apps/v1
@@ -130,6 +132,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         volumeMounts:
         - name: telegraf-config-volume
           mountPath: /etc/telegraf/telegraf.conf
