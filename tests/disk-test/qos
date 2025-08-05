@@ -4,11 +4,34 @@ Calcula la diferencia de solicitudes entre intervalos de 1 minuto (aggregateWind
 Mide el throughput como peticiones por segundo (RPS) por nodo.
 
 
+  influx query 'import "math"
+First = from(bucket: "doctorado")
+        |> range(start: -5m, stop: now())
+        |> filter(fn: (r) => r["_measurement"] == "diskio")
+        |> filter(fn: (r) => r["_field"] == "read_time")
+        |> filter(fn: (r) => r["name"] == "sda2")
+        |> group(columns: ["url"], mode:"by")
+        |> keep(columns: ["url", "_value"])
+        |> first()
+        |> yield(name: "first")
+Last = from(bucket: "doctorado")
+        |> range(start: -5m, stop: now())
+        |> filter(fn: (r) => r["_measurement"] == "diskio")
+        |> filter(fn: (r) => r["_field"] == "read_time")
+        |> filter(fn: (r) => r["name"] == "sda2")
+        |> group(columns: ["url"], mode:"by")
+        |> keep(columns: ["url", "_value"])
+        |> last()
+        |> yield(name: "last")
+union(tables: [First, Last])
+        |> difference()
+        |> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
+
  influx query 'from(bucket: "doctorado")
   |> range(start: -105m, stop: -5m)
   |> filter(fn: (r) => r["_measurement"] == "diskio")
   |> filter(fn: (r) => r["_field"] == "read_time")
-  |> filter(fn: (r) => (r["name"] == "sda2" and r["node"] == "worker04") or (r["name"] == "sda3" and r["node"] != "worker04") )
+  |> filter(fn: (r) => r["name"] == "sda2" )
   |> aggregateWindow(every: 3m, fn: max, createEmpty: false)
     |> derivative(unit: 1s, nonNegative: true)
     |> group(columns: ["node"])
@@ -16,12 +39,11 @@ Mide el throughput como peticiones por segundo (RPS) por nodo.
     |> filter(fn: (r) => r.average_read_time_per_node != 0)
     |> keep(columns: ["_time", "node", "average_read_time_per_node"])'
 
-
  influx query 'from(bucket: "doctorado")
   |> range(start: -115m, stop: -15m)
   |> filter(fn: (r) => r["_measurement"] == "diskio")
   |> filter(fn: (r) => r["_field"] == "write_time")
-  |> filter(fn: (r) => (r["name"] == "sda2" and r["node"] == "worker04") or (r["name"] == "sda3" and r["node"] != "worker04") )
+  |> filter(fn: (r) => r["name"] == "sda2" )
   |> aggregateWindow(every: 3m, fn: max, createEmpty: false)
     |> derivative(unit: 1s, nonNegative: true)
     |> group(columns: ["node"])
@@ -620,31 +642,7 @@ worker04   682m         17%      1492Mi          37%
 worker05   4001m        100%     1309Mi          16%
 
   k get pods -n nginx -o wide
-NAME                             READY   STATUS     RESTARTS   AGE    IP           NODE       NOMINATED NODE   READINESS GATES
-openresty-fibo-b9688fdd9-2rns4   2/2     Running    0          36m    10.0.2.84    worker02   <none>           <none>
-openresty-fibo-b9688fdd9-52bk2   2/2     Running    0          6m8s   10.0.1.106   worker01   <none>           <none>
-openresty-fibo-b9688fdd9-5mb8q   2/2     Running    0          61m    10.0.2.198   worker02   <none>           <none>
-openresty-fibo-b9688fdd9-6x8g7   2/2     Running    0          76m    10.0.5.128   worker05   <none>           <none>
-openresty-fibo-b9688fdd9-7hvrb   2/2     Running    0          26m    10.0.1.217   worker01   <none>           <none>
-openresty-fibo-b9688fdd9-8mvls   2/2     Running    0          46m    10.0.3.45    worker03   <none>           <none>
-openresty-fibo-b9688fdd9-8qmdd   2/2     Running    0          31m    10.0.1.14    worker01   <none>           <none>
-openresty-fibo-b9688fdd9-9fppp   0/2     OutOfcpu   0          66s    <none>       worker05   <none>           <none>
-openresty-fibo-b9688fdd9-bc7w4   2/2     Running    0          11m    10.0.2.1     worker02   <none>           <none>
-openresty-fibo-b9688fdd9-c82zr   2/2     Running    0          21m    10.0.4.206   worker04   <none>           <none>
-openresty-fibo-b9688fdd9-gwl8l   2/2     Running    0          41m    10.0.2.242   worker02   <none>           <none>
-openresty-fibo-b9688fdd9-hrgz7   2/2     Running    0          81m    10.0.5.186   worker05   <none>           <none>
-openresty-fibo-b9688fdd9-j5pmv   2/2     Running    0          56m    10.0.4.166   worker04   <none>           <none>
-openresty-fibo-b9688fdd9-kmj74   2/2     Running    0          66s    10.0.3.98    worker03   <none>           <none>
-openresty-fibo-b9688fdd9-mgxhh   2/2     Running    0          16m    10.0.3.162   worker03   <none>           <none>
-openresty-fibo-b9688fdd9-nqs6z   2/2     Running    0          51m    10.0.5.133   worker05   <none>           <none>
-openresty-fibo-b9688fdd9-ptgns   0/2     OutOfcpu   0          6m8s   <none>       worker04   <none>           <none>
-openresty-fibo-b9688fdd9-q76qc   2/2     Running    0          86m    10.0.5.115   worker05   <none>           <none>
-openresty-fibo-b9688fdd9-qvkhg   0/2     OutOfcpu   0          66s    <none>       worker04   <none>           <none>
-openresty-fibo-b9688fdd9-t5r2t   2/2     Running    0          91m    10.0.4.6     worker04   <none>           <none>
-openresty-fibo-b9688fdd9-v7wst   2/2     Running    0          71m    10.0.4.138   worker04   <none>           <none>
-openresty-fibo-b9688fdd9-w2wgf   2/2     Running    0          66m    10.0.4.135   worker04   <none>           <none>
-openresty-fibo-b9688fdd9-wcrwt   2/2     Running    0          92m    10.0.5.161   worker05   <none>           <none>
-openresty-fibo-b9688fdd9-wt8r4   0/2     OutOfcpu   0          16m    <none>       worker05   <none>           <none>
+
 
 
 
