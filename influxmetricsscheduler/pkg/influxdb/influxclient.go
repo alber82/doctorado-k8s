@@ -95,7 +95,6 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 			query += fmt.Sprintln(`	|> group(columns: ["node_ip"], mode:"by")
 	|> keep(columns: ["node_ip", "_value"])
 	|> first()
-	|> yield(name: "first")
 	
 	`)
 
@@ -115,11 +114,11 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 			query += fmt.Sprintf(`	|> group(columns: ["node_ip"], mode:"by")
 	|> keep(columns: ["node_ip", "_value"])
 	|> last()
-	|> yield(name: "last")
 	
 	union(tables: [First, Last])
 	|> difference()
-	|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))`)
+	|> map(fn: (r) => ({r with _value: math.abs(x: float(v: r._value))}))
+    |> yield(name: "delta_read_time")`)
 		}
 	} else {
 		switch metricsParams.Operation {

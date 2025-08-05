@@ -15,8 +15,8 @@ docker push 192.168.1.229:5000/doctorado/influxdb-scheduler:0.0.0
 docker build --platform linux/arm64  --build-arg VERSION=0.0.0 -t 192.168.1.229:5000/doctorado/random-scheduler:0.0.0 -f random-scheduler/Dockerfile .
 docker push 192.168.1.229:5000/doctorado/random-scheduler:0.0.0
 
-docker build --platform linux/arm64  --build-arg VERSION=0.0.0 -t 192.168.1.229:5000/doctorado/nginx-fibonacci:0.0.0 -f tests/apps/nginx-fibonacci/Dockerfile .
-docker push 192.168.1.229:5000/doctorado/nginx-fibonacci:0.0.0
+#docker build --platform linux/arm64  --build-arg VERSION=0.0.0 -t 192.168.1.229:5000/doctorado/nginx-fibonacci:0.0.0 -f tests/apps/nginx-fibonacci/Dockerfile .
+#docker push 192.168.1.229:5000/doctorado/nginx-fibonacci:0.0.0
 
 docker build --platform linux/arm64  --build-arg VERSION=0.0.0 -t 192.168.1.229:5000/doctorado/disk-test:0.0.0 -f tests/apps/disk-test/Dockerfile .
 docker push 192.168.1.229:5000/doctorado/disk-test:0.0.0
