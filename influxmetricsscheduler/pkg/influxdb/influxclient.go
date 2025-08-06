@@ -48,6 +48,28 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 	log.Info("Connected to InfluxDB")
 
 	var priorityMap = make(map[string]int64)
+	ctx := context.Background()
+
+	// 1) Traer todos los node_ip y poner valor por defecto -1
+	distinctQ := fmt.Sprintf(`
+import "influxdata/influxdb/schema"
+schema.tagValues(
+  bucket: "%s",
+  tag: "node_ip",
+  predicate: (r) => r._measurement == "%s"
+)
+`, dbConnectionParams.Bucket, metricsParams.MetricName)
+	dr, err := queryAPI.Query(ctx, distinctQ)
+	if err != nil {
+		return nil, err
+	}
+	for dr.Next() {
+		ip := dr.Record().Value().(string)
+		priorityMap[ip] = -1
+	}
+	if dr.Err() != nil {
+		return nil, dr.Err()
+	}
 
 	query := fmt.Sprintf(`import "math"
 `)
