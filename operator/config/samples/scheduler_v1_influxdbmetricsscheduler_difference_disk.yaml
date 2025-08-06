@@ -56,8 +56,7 @@ spec:
     operation: "difference"
     priorityOrder: "desc"
     filters:
-    - "fn: (r) => r['name'] == 'sda2'"
-    - "fn: (r) => r['_field'] == 'read_time'"
+    - "fn: (r) => r['_field'] == 'write_time'"
     isSecondLevel: false
   filterNodes:
   - master01
