@@ -23,6 +23,9 @@ export let options = {
         { duration: '5m', target: 90 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
         { duration: '5m', target: 95 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
         { duration: '5m', target: 100 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+        { duration: '5m', target: 100 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+        { duration: '5m', target: 100 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
+
     ],
 };
 
