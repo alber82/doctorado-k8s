@@ -66,13 +66,8 @@ schema.tagValues(
 	}
 	for dr.Next() {
 		ip := dr.Record().Value().(string)
-		//priorityMap[ip] = -1
-		if metricsParams.PriorityOrder == "asc" {
-			priorityMap[ip] = 0
+		priorityMap[ip] = -1
 
-		} else {
-			priorityMap[ip] = int64(math.MaxInt64)
-		}
 	}
 	if dr.Err() != nil {
 		return nil, dr.Err()
