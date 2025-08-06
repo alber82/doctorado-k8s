@@ -9,6 +9,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"main/pkg/commons"
+	"math"
 	"reflect"
 	"strings"
 )
@@ -65,7 +66,13 @@ schema.tagValues(
 	}
 	for dr.Next() {
 		ip := dr.Record().Value().(string)
-		priorityMap[ip] = -1
+		//priorityMap[ip] = -1
+		if metricsParams.PriorityOrder == "asc" {
+			priorityMap[ip] = 0
+
+		} else {
+			priorityMap[ip] = int64(math.MaxInt64)
+		}
 	}
 	if dr.Err() != nil {
 		return nil, dr.Err()
