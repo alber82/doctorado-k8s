@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, '/data');
+const DATA_DIR = '/data';
 
 // Asegurar que la carpeta de trabajo existe
 if (!fs.existsSync(DATA_DIR)) {

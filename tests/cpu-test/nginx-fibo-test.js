@@ -31,6 +31,8 @@ export let options = {
                 { duration: '5m', target: 4500 },
                 { duration: '5m', target: 4750 },
                 { duration: '5m', target: 5000 },
+                { duration: '5m', target: 5000 },
+                { duration: '5m', target: 5000 },
             ],
         },
     },
