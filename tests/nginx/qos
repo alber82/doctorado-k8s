@@ -1,5 +1,53 @@
 
+influx query  'import "math"
+First = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: ["url"], mode:"by")
+  |> keep(columns: ["url", "_value"])
+  |> first()
 
+Last = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: [ "url"], mode:"by")
+  |> keep(columns: ["url", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
+
+
+
+
+
+
+
+
+
+influx query  'import "math"
+First = from(bucket: "doctorado")
+  |> range(start: -5m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "diskio")
+  |> filter(fn: (r) => r["_field"] == "read_time")
+  |> group(columns: ["node_ip"], mode:"by")
+  |> keep(columns: ["node_ip", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -5m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "diskio")
+  |> filter(fn: (r) => r["_field"] == "read_time")
+  |> group(columns: [ "node_ip"], mode:"by")
+  |> keep(columns: ["node_ip", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with  _value: math.abs(x: float(v: r._value))}))'
 
 
 peticiones
