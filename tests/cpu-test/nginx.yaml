@@ -127,9 +127,11 @@ spec:
             requests:
               cpu: 500m
               memory: 256Mi
+              ephemeral-storage: "1Gi"
             limits:
               cpu: 500m
               memory: 256Mi
+              ephemeral-storage: "2Gi"
           volumeMounts:
             - name: openresty-config
               mountPath: /usr/local/openresty/nginx/conf/nginx.conf
@@ -137,6 +139,8 @@ spec:
             - name: openresty-config
               mountPath: /etc/nginx/fibo.lua
               subPath: fibo.lua
+            - name: scratch
+              mountPath: /data
           env:
             - name: KUBERNETES_NODE_NAME
               valueFrom:
@@ -172,6 +176,8 @@ spec:
         - name: telegraf-config
           configMap:
             name: telegraf-fibo-config
+        - name: scratch
+          emptyDir: {}
 
 ---
 
