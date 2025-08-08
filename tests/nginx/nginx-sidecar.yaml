@@ -95,7 +95,7 @@ spec:
       labels:
         app: nginx
     spec:
-      #      schedulerName: influxdbmetricsschedulernet
+      schedulerName: influxdbmetricsschedulernet
       containers:
       - name: nginx
         image: nginx:latest

@@ -1,10 +1,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: influxdbmetricsschedulerdisk
+  name: influxdbmetricsschedulercpu
 subjects:
 - kind: ServiceAccount
-  name: influxdbmetricsschedulerdisk
+  name: influxdbmetricsschedulercpu
   namespace: scheduling
 roleRef:
   kind: ClusterRole
@@ -17,7 +17,7 @@ metadata:
   labels:
     app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
-  name: influxdbmetricsschedulerdisk
+  name: influxdbmetricsschedulercpu
   namespace: scheduling
 spec:
   image: 192.168.1.229:5000/doctorado/influxdb-scheduler:0.0.0
@@ -52,7 +52,7 @@ spec:
     bucket: doctorado
   metric:
     name: "node_cpu_seconds_total"
-    startDate: "-20m"
+    startDate: "-10m"
     endDate: "now()"
     operation: "difference"
     priorityOrder: "desc"

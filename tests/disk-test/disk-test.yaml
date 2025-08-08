@@ -65,7 +65,7 @@ spec:
         app: disk-stress
     spec:
       #schedulerName: randomscheduler
-      schedulerName: influxdbmetricsschedulerdisk  
+      #schedulerName: influxdbmetricsschedulerdisk  
       containers:
         - name: disk-stress
           image: 192.168.1.229:5000/doctorado/disk-test:0.0.0
