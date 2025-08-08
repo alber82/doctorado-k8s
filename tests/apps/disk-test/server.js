@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
+const { exec } = require('child_process');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -23,6 +23,27 @@ app.get('/disk-usage', (req, res) => {
         const usagePercentage = (diskUsage / totalSpace) * 100;
 
         res.json({ usage: usagePercentage.toFixed(2) });
+    });
+});
+
+
+// Uso real del filesystem que contiene /data (porcentaje usado)
+app.get('/disk-usage', (_req, res) => {
+    exec('df -k /data', (err, stdout) => {
+        if (err) return res.status(500).send('Error al obtener uso de disco');
+        const lines = stdout.trim().split('\n');
+        if (lines.length < 2) return res.status(500).send('Salida df inesperada');
+        const parts = lines[1].trim().split(/\s+/);
+        const sizeKB = parseInt(parts[1], 10);
+        const usedKB = parseInt(parts[2], 10);
+        const availKB = parseInt(parts[3], 10);
+        const usage = (usedKB / sizeKB) * 100;
+        res.json({
+            usage: Number(usage.toFixed(2)),
+            sizeBytes: sizeKB * 1024,
+            usedBytes: usedKB * 1024,
+            availBytes: availKB * 1024
+        });
     });
 });
 
