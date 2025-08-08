@@ -13,20 +13,6 @@ if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR);
 }
 
-// Endpoint para obtener el uso del disco
-app.get('/disk-usage', (req, res) => {
-    fs.stat(DATA_DIR, (err, stats) => {
-        if (err) return res.status(500).send('Error al obtener información del disco');
-
-        const diskUsage = stats.blocks * stats.blksize; // Uso en bytes
-        const totalSpace = os.totalmem(); // Simulación de total (en un entorno real usaría un metodo diferente)
-        const usagePercentage = (diskUsage / totalSpace) * 100;
-
-        res.json({ usage: usagePercentage.toFixed(2) });
-    });
-});
-
-
 // Uso real del filesystem que contiene /data (porcentaje usado)
 app.get('/disk-usage', (_req, res) => {
     exec('df -k /data', (err, stdout) => {
