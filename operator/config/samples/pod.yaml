@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: influxdb-metrics-cpu
+spec:
+  schedulerName: influxdbmetricsschedulercpu
+  containers:
+    - name: busybox
+      image: busybox:1.35
+      command: ["sleep", "3600"]
