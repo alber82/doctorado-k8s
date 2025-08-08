@@ -40,6 +40,7 @@ export let options = {
         http_req_duration: ['p(95)<2000'],
         http_req_failed: ['rate<0.01'],
     },
+    noVUConnectionReuse: true,
     discardResponseBodies: true,
     summaryTrendStats: ['avg', 'min', 'med', 'p(95)'],
     systemTags: ['status', 'method', 'url'],
@@ -47,7 +48,7 @@ export let options = {
 
 export default function () {
     let i = randomIntBetween(500000, 600000);
-    const response = http.get(`http://openresty-fibo.nginx/fibonacci?n=${i}`);
+    const response = http.get(`http://openresty-fibo.nginx/fibonacci?n=${i}`, { headers: { Connection: 'close' } });
 
     check(response, {
         'status was 200': r => r.status === 200,

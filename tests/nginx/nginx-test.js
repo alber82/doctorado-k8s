@@ -39,6 +39,7 @@ export let options = {
         http_req_duration: ['p(95)<2000'],  // 95% de las requests deben ser menores a 2s
         http_req_failed: ['rate<0.01'],    // Menos del 1% de fallos
     },
+    noVUConnectionReuse: true,
     discardResponseBodies: true,  // Evita consumir memoria almacenando respuestas grandes
     summaryTrendStats: ['avg', 'min', 'med', 'p(95)'],
     systemTags: ['status', 'method', 'url'],

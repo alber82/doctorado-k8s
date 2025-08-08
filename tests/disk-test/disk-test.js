@@ -27,14 +27,15 @@ export let options = {
         { duration: '5m', target: 100 }, // Aumento del 5% a 1,139 RPS durante 10 minutos
 
     ],
+    noVUConnectionReuse: true,
 };
 
 export default function () {
-    let diskUsageResponse = http.get('http://disk-stress.nginx/disk-usage');
+    let diskUsageResponse = http.get('http://disk-stress.nginx/disk-usage', { headers: { Connection: 'close' } });
     let diskUsage = JSON.parse(diskUsageResponse.body).usage;
 
     // Realizar lecturas siempre
-    http.get('http://disk-stress.nginx/read');
+    http.get('http://disk-stress.nginx/read', { headers: { Connection: 'close' } });
 
     if (diskUsage < 60) {
         // Escribir archivos si el uso del disco es menor al 80%
