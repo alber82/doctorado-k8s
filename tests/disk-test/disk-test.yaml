@@ -64,7 +64,7 @@ spec:
       labels:
         app: disk-stress
     spec:
-      #schedulerName: randomscheduler
+      schedulerName: randomscheduler
       #schedulerName: influxdbmetricsschedulerdisk  
       containers:
         - name: disk-stress
@@ -74,8 +74,8 @@ spec:
               cpu: 250m
               memory: 256M
             limits:
-              cpu: 250m
-              memory: 256M
+              cpu: 500m
+              memory: 512M
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
