@@ -48,29 +48,29 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 	log.Info("Connected to InfluxDB")
 
 	var priorityMap = make(map[string]int64)
-	//ctx := context.Background()
+	ctx := context.Background()
 
-	// 1) Traer todos los node_ip y poner valor por defecto -1
-	//	distinctQ := fmt.Sprintf(`
-	//import "influxdata/influxdb/schema"
-	//schema.tagValues(
-	//  bucket: "%s",
-	//  tag: "node_ip",
-	//  predicate: (r) => r._measurement == "%s"
-	//)
-	//`, dbConnectionParams.Bucket, metricsParams.MetricName)
-	//	dr, err := queryAPI.Query(ctx, distinctQ)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	for dr.Next() {
-	//		ip := dr.Record().Value().(string)
-	//		priorityMap[ip] = -1
-	//
-	//	}
-	//	if dr.Err() != nil {
-	//		return nil, dr.Err()
-	//	}
+	//1) Traer todos los node_ip y poner valor por defecto -1
+	distinctQ := fmt.Sprintf(`
+	import "influxdata/influxdb/schema"
+	schema.tagValues(
+	 bucket: "%s",
+	 tag: "node_ip",
+	 predicate: (r) => r._measurement == "%s"
+	)
+	`, dbConnectionParams.Bucket, metricsParams.MetricName)
+	dr, err := queryAPI.Query(ctx, distinctQ)
+	if err != nil {
+		return nil, err
+	}
+	for dr.Next() {
+		ip := dr.Record().Value().(string)
+		priorityMap[ip] = -1
+
+	}
+	if dr.Err() != nil {
+		return nil, dr.Err()
+	}
 
 	query := fmt.Sprintf(`import "math"
 `)
@@ -92,8 +92,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`|> group(columns: ["url"], mode:"by")
-	|> keep(columns: ["url", "_value"])
+			query += fmt.Sprintf(`|> group(columns: ["node_ip"], mode:"by")
+	|> keep(columns: ["node_ip", "_value"])
 	|> %s()
 	|> yield(name: "%s")
 `,
@@ -115,8 +115,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintln(`	|> group(columns: ["url"], mode:"by")
-	|> keep(columns: ["url", "_value"])
+			query += fmt.Sprintln(`	|> group(columns: ["node_ip"], mode:"by")
+	|> keep(columns: ["node_ip", "_value"])
 	|> first()
 	
 	`)
@@ -134,8 +134,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`	|> group(columns: ["url"], mode:"by")
-	|> keep(columns: ["url", "_value"])
+			query += fmt.Sprintf(`	|> group(columns: ["node_ip"], mode:"by")
+	|> keep(columns: ["node_ip", "_value"])
 	|> last()
 	
 	union(tables: [First, Last])
@@ -161,8 +161,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`	|> group(columns: ["url","%s"], mode:"by")
-	|> keep(columns: ["url", "%s","_value"])
+			query += fmt.Sprintf(`	|> group(columns: ["node_ip","%s"], mode:"by")
+	|> keep(columns: ["node_ip", "%s","_value"])
 	|> %s(column: "_value")
 	|> yield(name: "%s")
 `,
@@ -172,8 +172,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 				metricsParams.SecondLevelOperation)
 
 			query += fmt.Sprintf(`%s
-	|> group(columns: [ "url"], mode:"by")
-	|> keep(columns: ["url","_value"])
+	|> group(columns: [ "node_ip"], mode:"by")
+	|> keep(columns: ["node_ip","_value"])
 	|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
 	|> %s(column: "_value")`,
 				cases.Title(language.English, cases.Compact).String(metricsParams.SecondLevelOperation),
@@ -194,8 +194,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`	|> group(columns: ["url","%s"], mode:"by")
-	|> keep(columns: ["url", "%s", "_value"])
+			query += fmt.Sprintf(`	|> group(columns: ["node_ip","%s"], mode:"by")
+	|> keep(columns: ["node_ip", "%s", "_value"])
 	|> first()
 `, metricsParams.SecondLevelGroup,
 				metricsParams.SecondLevelGroup)
@@ -214,8 +214,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 `, strings.Replace(filter, "'", "\"", -1))
 			}
 
-			query += fmt.Sprintf(`	|> group(columns: ["url", "%s"], mode:"by")
-	|> keep(columns: ["url", "%s", "_value"])
+			query += fmt.Sprintf(`	|> group(columns: ["node_ip", "%s"], mode:"by")
+	|> keep(columns: ["node_ip", "%s", "_value"])
 	|> last()
 `,
 				metricsParams.SecondLevelGroup,
@@ -223,8 +223,8 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 
 			query += fmt.Sprintf(`union(tables: [First, Last])
 	|> difference()
-	|> group(columns: [ "url"], mode:"by")
-	|> keep(columns: ["url","_value"])
+	|> group(columns: [ "node_ip"], mode:"by")
+	|> keep(columns: ["node_ip","_value"])
 	|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
 	|> %s(column: "_value")`,
 				metricsParams.SecondLevelOperation)
@@ -249,15 +249,15 @@ func (databaseClient *DatabaseClient) GetMetrics(metricsParams commons.MetricPar
 			}
 
 			// con url
-			priorityMap[strings.Split(strings.TrimLeft(fmt.Sprintf("%s", result.Record().ValueByKey("url")), "https://"), ":")[0]] = int64(float)
-			// Access data
-			log.Info(fmt.Printf("url: %s  %f\n", result.Record().ValueByKey("url"), float))
+			//priorityMap[strings.Split(strings.TrimLeft(fmt.Sprintf("%s", result.Record().ValueByKey("url")), "https://"), ":")[0]] = int64(float)
+			//// Access data
+			//log.Info(fmt.Printf("url: %s  %f\n", result.Record().ValueByKey("url"), float))
 
 			//con ip
 
-			//priorityMap[fmt.Sprintf("%s", result.Record().ValueByKey("node_ip"))] = int64(float)
+			priorityMap[fmt.Sprintf("%s", result.Record().ValueByKey("node_ip"))] = int64(float)
 			//// Access data
-			//log.Info(fmt.Printf("url: %s  %f\n", result.Record().ValueByKey("node_ip"), float))
+			log.Info(fmt.Printf("url: %s  %f\n", result.Record().ValueByKey("node_ip"), float))
 		}
 		// check for an error
 		if result.Err() != nil {
