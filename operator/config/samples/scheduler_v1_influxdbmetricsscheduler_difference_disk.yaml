@@ -50,13 +50,12 @@ spec:
     bucket: doctorado
   metric:
     name: "diskio"
-    #name: "node_disk_written_bytes_total"
     startDate: "-5m"
     endDate: "now()"
     operation: "difference"
     priorityOrder: "desc"
     filters:
-    - "fn: (r) => r['_field'] == 'write_time'"
+    - "fn: (r) => r['_field'] == 'read_time'"
     isSecondLevel: false
   filterNodes:
   - master01
