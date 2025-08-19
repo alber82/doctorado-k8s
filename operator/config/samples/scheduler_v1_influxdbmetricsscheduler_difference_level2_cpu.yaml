@@ -44,6 +44,9 @@ spec:
       maxUnavailable: 35%
   filterNodes:
   - master01
+  - worker06
+  - worker07
+  - worker08    
   influxdb:
     host: influxdb-influxdb2.monitoring
     port: "80"
@@ -52,7 +55,7 @@ spec:
     bucket: doctorado
   metric:
     name: "node_cpu_seconds_total"
-    startDate: "-10m"
+    startDate: "-5m"
     endDate: "now()"
     operation: "difference"
     priorityOrder: "desc"
