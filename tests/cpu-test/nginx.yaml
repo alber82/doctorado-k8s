@@ -117,8 +117,8 @@ spec:
       labels:
         app: openresty-fibo
     spec:
-      #      schedulerName: influxdbmetricsschedulercpu
-      schedulerName: randomscheduler
+      schedulerName: influxdbmetricsschedulercpu
+      #schedulerName: randomscheduler
       containers:
         - name: openresty
           image: openresty/openresty:alpine
