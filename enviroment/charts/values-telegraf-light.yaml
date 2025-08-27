@@ -249,6 +249,10 @@ config:
           - https://192.168.1.223:9100/metrics
           - https://192.168.1.224:9100/metrics
           - https://192.168.1.225:9100/metrics
+          - https://192.168.1.226:9100/metrics
+          - https://192.168.1.227:9100/metrics
+          - https://192.168.1.228:9100/metrics
+
 metrics:
   health:
     enabled: false

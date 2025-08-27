@@ -50,7 +50,7 @@ spec:
     bucket: doctorado
   metric:
     name: "node_network_receive_bytes_total"
-    startDate: "-10m"
+    startDate: "-5m"
     endDate: "now()"
     operation: "difference"
     priorityOrder: "desc"
@@ -59,4 +59,6 @@ spec:
     isSecondLevel: false
   filterNodes:
   - master01
-      
+  - worker06
+  - worker07
+  - worker08  

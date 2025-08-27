@@ -96,6 +96,7 @@ spec:
         app: nginx
     spec:
       schedulerName: influxdbmetricsschedulernet
+        #schedulerName: randomscheduler
       containers:
       - name: nginx
         image: nginx:latest
