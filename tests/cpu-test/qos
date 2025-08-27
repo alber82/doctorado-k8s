@@ -539,12 +539,12 @@ random
 
 
 NAME       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
-master01   3932m        98%         5599Mi          70%
-worker01   1021m        25%         1244Mi          15%
-worker02   3997m        99%         1771Mi          22%
-worker03   1080m        27%         1254Mi          15%
-worker04   1198m        29%         1695Mi          42%
-worker05   3910m        108%        1381Mi          18%
+    master01   3932m        98%         5599Mi          70%
+    worker01   1021m        25%         1244Mi          15%
+    worker02   3997m        99%         1771Mi          22%
+    worker03   1080m        27%         1254Mi          15%
+    worker04   1198m        29%         1695Mi          42%
+    worker05   3910m        108%        1381Mi          18%
 
   k get pods -n nginx -o wide
 
@@ -583,7 +583,6 @@ openresty-fibo-6fcf4b4c64-9xblq   2/2     Running    0          80m     10.0.2.6
 openresty-fibo-6fcf4b4c64-bb4ql   2/2     Running    0          60m     10.0.5.29    worker05   <none>           <none>
 openresty-fibo-6fcf4b4c64-bwt8x   2/2     Running    0          65m     10.0.5.56    worker05   <none>           <none>
 openresty-fibo-6fcf4b4c64-bzsct   2/2     Running    0          15m     10.0.1.213   worker01   <none>           <none>
-openresty-fibo-6fcf4b4c64-cn5fh   0/2     OutOfcpu   0          40m     <none>       worker05   <none>           <none>
 openresty-fibo-6fcf4b4c64-dmcf9   2/2     Running    0          75m     10.0.2.161   worker02   <none>           <none>
 openresty-fibo-6fcf4b4c64-hrgz2   2/2     Running    0          20m     10.0.2.101   worker02   <none>           <none>
 openresty-fibo-6fcf4b4c64-k95pc   2/2     Running    0          10m     10.0.4.116   worker04   <none>           <none>
@@ -594,6 +593,7 @@ openresty-fibo-6fcf4b4c64-sg4tg   2/2     Running    0          86m     10.0.5.2
 openresty-fibo-6fcf4b4c64-sqxzf   2/2     Running    0          31s     10.0.2.48    worker02   <none>           <none>
 openresty-fibo-6fcf4b4c64-vdl2m   2/2     Running    0          45m     10.0.4.170   worker04   <none>           <none>
 openresty-fibo-6fcf4b4c64-wwns9   2/2     Running    0          91m     10.0.2.134   worker02   <none>           <none>
+openresty-fibo-6fcf4b4c64-cn5fh   0/2     OutOfcpu   0          40m     <none>       worker05   <none>           <none>
 
 
 
@@ -661,7 +661,6 @@ w4
 throughput_rps
 
 
-Table: keys: [node]
 Table: keys: [node]
            node:string                      _time:time          throughput_rps:float
 ----------------------  ------------------------------  ----------------------------
@@ -1081,7 +1080,6 @@ Result: _result
 Table: keys: [node]
            node:string                      _time:time          throughput_rps:float
 ----------------------  ------------------------------  ----------------------------
-              worker01  2025-08-19T14:42:00.000000000Z
               worker01  2025-08-19T14:45:00.000000000Z            168.36666666666667
               worker01  2025-08-19T14:48:00.000000000Z            162.44444444444446
               worker01  2025-08-19T14:51:00.000000000Z            205.65555555555557
@@ -1118,7 +1116,6 @@ Table: keys: [node]
 Table: keys: [node]
            node:string                      _time:time          throughput_rps:float
 ----------------------  ------------------------------  ----------------------------
-              worker02  2025-08-19T14:48:00.000000000Z
               worker02  2025-08-19T14:51:00.000000000Z            208.46666666666667
               worker02  2025-08-19T14:54:00.000000000Z            198.76111111111112
               worker02  2025-08-19T14:57:00.000000000Z            215.34444444444443
@@ -1153,7 +1150,6 @@ Table: keys: [node]
 Table: keys: [node]
            node:string                      _time:time          throughput_rps:float
 ----------------------  ------------------------------  ----------------------------
-              worker03  2025-08-19T14:51:00.000000000Z
               worker03  2025-08-19T14:54:00.000000000Z            201.14444444444445
               worker03  2025-08-19T14:57:00.000000000Z             213.8111111111111
               worker03  2025-08-19T15:00:00.000000000Z            224.11666666666667
@@ -1187,7 +1183,6 @@ Table: keys: [node]
 Table: keys: [node]
            node:string                      _time:time          throughput_rps:float
 ----------------------  ------------------------------  ----------------------------
-              worker04  2025-08-19T14:57:00.000000000Z
               worker04  2025-08-19T15:00:00.000000000Z             218.9388888888889
               worker04  2025-08-19T15:03:00.000000000Z            164.45555555555555
               worker04  2025-08-19T15:06:00.000000000Z            145.40555555555557
@@ -1219,7 +1214,6 @@ Table: keys: [node]
 Table: keys: [node]
            node:string                      _time:time          throughput_rps:float
 ----------------------  ------------------------------  ----------------------------
-              worker05  2025-08-19T15:03:00.000000000Z
               worker05  2025-08-19T15:06:00.000000000Z            116.04444444444445
               worker05  2025-08-19T15:09:00.000000000Z            116.97777777777777
               worker05  2025-08-19T15:12:00.000000000Z            116.28333333333333
