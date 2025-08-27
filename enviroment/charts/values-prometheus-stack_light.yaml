@@ -1,0 +1,58 @@
+defaultRules:
+  create: false
+
+kube-state-metrics:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+grafana:
+  enabled: false
+
+prometheus:
+  enabled: false
+
+prometheusOperator:
+  enabled: false
+
+prometheus-node-exporter:
+  extraArgs:
+    - --collector.disable-defaults
+    - --collector.cpu
+    - --collector.diskstats
+    - --collector.netdev
+    - --collector.netstat
+    - --collector.filesystem
+    - --web.config.file=/etc/node_exporter/web-config.yml
+
+  extraVolumeMounts:
+    - name: tls-config
+      mountPath: /etc/node_exporter
+      readOnly: true
+    - name: tls-cert
+      mountPath: /tls
+      readOnly: true
+
+  extraVolumes:
+    - name: tls-config
+      secret:
+        secretName: prometheus-tls
+        items:
+          - key: web-config.yml
+            path: web-config.yml
+    - name: tls-cert
+      secret:
+        secretName: prometheus-tls
+        items:
+          - key: tls.crt
+            path: tls.crt
+          - key: tls.key
+            path: tls.key      
+  resources:
+    limits:
+      cpu: 100m
+      memory: 50Mi
+    requests:
+      cpu: 50m
+      memory: 30Mi

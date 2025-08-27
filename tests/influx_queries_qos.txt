@@ -1,0 +1,299 @@
+CONSUMOS
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "rpi_power_watts" and r._field == "value")
+  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+  |> map(fn: (r) => ({
+      r with consumo_kwh: (r._value / 1000.0) * (1.0 / 60.0)
+  }))
+  |> group(columns: ["ip"])
+  |> sum(column: "consumo_kwh")'
+
+
+from(bucket: "doctorado")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "rpi_power_watts" and r._field == "value")
+  |> group(columns: ["modelo"])
+  |> mean()
+
+
+from(bucket: "doctorado")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "rpi_power_watts" and r._field == "value")
+  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
+  |> group(columns: ["ip"])
+
+
+
+IDLE MEASURMENT
+
+influx query 'import "math"
+
+First = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_disk_written_bytes_total")
+  |> filter(fn: (r) => r["device"] == "sda")
+  |> group(columns: ["instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_disk_written_bytes_total")
+  |> filter(fn: (r) => r["device"] == "sda")
+  |> group(columns: [ "instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
+
+Result: _result
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.220:9100                      88437248
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.221:9100                       2683392
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.222:9100                       8000000
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.223:9100                       4092416
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.224:9100                    1238806528
+
+
+----------------------
+
+
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.220:9100/metrics                     104263680
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.221:9100/metrics                       1507328
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.222:9100/metrics                       1069056
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.223:9100/metrics                     100225024
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.224:9100/metrics                      12419072
+
+
+influx query  'import "math"
+
+First = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: ["instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: [ "instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
+
+
+Result: _result
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.220:9100                       5162835
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.221:9100                       2096448
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.222:9100                       1688380
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.223:9100                       1911362
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.224:9100                      90440045
+Table: keys: [instance]
+       instance:string                  _value:float
+----------------------  ----------------------------
+    192.168.1.225:9100                      33950217
+
+    192.168.1.220:9100                       5162835
+    192.168.1.221:9100                       2096448
+    192.168.1.222:9100                       1688380
+    192.168.1.223:9100                       1911362
+    192.168.1.224:9100                      90440045
+    192.168.1.225:9100                      33950217
+
+influx query  'import "math"
+First = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: ["url"], mode:"by")
+  |> keep(columns: ["url", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: [ "url"], mode:"by")
+  |> keep(columns: ["url", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
+
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.220:9100/metrics                       3308068
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.221:9100/metrics                       2292270
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.222:9100/metrics                       4099909
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.223:9100/metrics                      21138783
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.224:9100/metrics                       4141520
+Table: keys: [url]
+                       url:string                  _value:float
+---------------------------------  ----------------------------
+http://192.168.1.225:9100/metrics                      19993162
+
+http://192.168.1.220:9100/metrics                       3308068
+http://192.168.1.221:9100/metrics                       2292270
+http://192.168.1.222:9100/metrics                       4099909
+http://192.168.1.223:9100/metrics                      21138783
+http://192.168.1.224:9100/metrics                       4141520
+http://192.168.1.225:9100/metrics                      19993162
+
+Medias en espera
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "nginx" and r._field == "waiting")
+  |> group(columns: ["node", "pod"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node", "pod", "avg_waiting"])'
+
+
+con ventana
+from(bucket: "doctorado")
+  |> range(start: -2h)
+  |> filter(fn: (r) => r._measurement == "nginx")
+  |> filter(fn: (r) => r._field == "waiting")
+  |> group(columns: ["node", "pod"])
+  |> aggregateWindow(every: 10m, fn: mean, createEmpty: false)
+
+
+
+
+  activos
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "nginx" and r._field == "active")
+  |> group(columns: ["node", "pod"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node", "pod", "avg_waiting"])'
+
+
+
+request
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "nginx" and r._field == "requests")
+  |> group(columns: ["node", "pod"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node", "pod", "avg_waiting"])'
+
+
+
+handle
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "nginx" and r._field == "handled")
+  |> group(columns: ["node", "pod"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node", "pod", "avg_waiting"])'
+
+
+
+  ------------------
+
+  latencia
+  por pod y en ventana
+
+  influx query 'from(bucket: "doctorado")
+  |> range(start: -2h)
+  |> filter(fn: (r) => r._measurement == "http_response")
+  |> filter(fn: (r) => r._field == "response_time")
+  |> group(columns: ["node", "pod"])
+  |> aggregateWindow(every: 10m, fn: mean, createEmpty: false)'
+
+
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -10m)
+  |> filter(fn: (r) => r._measurement == "http_response" and r._field == "response_time")
+  |> group(columns: ["node"])
+  |> mean()
+  |> rename(columns: {_value: "avg_waiting"})
+  |> keep(columns: ["node",  "avg_waiting"])'
+
+
+influx query 'from(bucket: "doctorado")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "http_response")
+  |> filter(fn: (r) => r._field == "response_time")
+  |> group()  // Elimina cualquier agrupación previa
+  |> mean()'

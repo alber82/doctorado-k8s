@@ -1,0 +1,49 @@
+---
+- name: Asegurar presencia de .ssh
+  file:
+    path: "/home/{{ ansible_user }}/.ssh"
+    state: directory
+    mode: '0700'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Generar par de claves si no existe
+  openssh_keypair:
+    path: "/home/{{ ansible_user }}/.ssh/id_rsa"
+    type: rsa
+    size: 2048
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+  when: inventory_hostname != groups['bootstrap'][0]
+
+- name: Copiar clave pública al host bootstrap
+  fetch:
+    src: "/home/{{ ansible_user }}/.ssh/id_rsa.pub"
+    dest: "tmp/keys/{{ inventory_hostname }}.pub"
+    flat: yes
+  when: inventory_hostname != groups['bootstrap'][0]
+  delegate_to: localhost
+
+- name: Ensamblar authorized_keys en bootstrap
+  assemble:
+    src: tmp/keys
+    dest: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+  when: inventory_hostname == groups['bootstrap'][0]
+
+- name: Copiar authorized_keys desde bootstrap
+  copy:
+    src: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+    dest: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+  delegate_to: "{{ groups['bootstrap'][0] }}"
+  when: inventory_hostname != groups['bootstrap'][0]
+
+- name: Actualizar /etc/hosts con todos los nodos
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item].ansible_host }} {{ item }}"
+    state: present
+  loop: "{{ groups['all'] }}"

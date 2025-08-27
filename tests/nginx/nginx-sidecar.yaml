@@ -1,0 +1,163 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  labels:
+    app: nginx
+data:
+  default.conf: |
+    server {
+        listen 80;
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+        }
+
+        # Exponer estadísticas en /status
+        location /status {
+            stub_status;
+            allow all;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-config
+  labels:
+    app: telegraf
+data:
+  telegraf.conf: |
+    [agent]
+      interval = "10s"
+      round_interval = true
+      metric_batch_size = 10000
+      metric_buffer_limit = 200000
+      collection_jitter = "0s"
+      flush_interval = "10s"
+      flush_jitter = "0s"
+      precision = ""
+      debug = true
+      quiet = false
+      logfile = ""
+      hostname = "$HOSTNAME"
+      omit_hostname = false
+
+    [[processors.enum]]
+      [[processors.enum.mapping]]
+        field = "status"
+        dest = "status_code"
+        [processors.enum.mapping.value_mappings]
+          healthy = 1
+          problem = 2
+          critical = 3
+
+    [[outputs.influxdb_v2]]
+      urls = ["http://influxdb-influxdb2.monitoring:80"]
+      token = "klsjdaioqwehrqoikdnmxcq"
+      organization = "uclm"
+      bucket = "doctorado"
+
+    [[inputs.nginx]]
+      urls = ["http://localhost/status"]
+      tagexclude = ["url"]
+      [inputs.nginx.tags]
+        instance = "$HOSTNAME"
+        node = "$KUBERNETES_NODE_NAME"
+        pod = "$KUBERNETES_POD_NAME"
+        node_ip  = "$NODE_IP"    
+
+    [[inputs.http_response]]
+      urls = ["http://localhost"]
+      response_timeout = "10s"
+      method = "GET"
+      [inputs.http_response.tags]
+        instance = "$HOSTNAME"
+        node = "$KUBERNETES_NODE_NAME"
+        pod = "$KUBERNETES_POD_NAME"
+        node_ip  = "$NODE_IP"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      schedulerName: influxdbmetricsschedulernet
+        #schedulerName: randomscheduler
+      containers:
+      - name: nginx
+        image: nginx:latest
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256M
+          limits:
+            cpu: 250m
+            memory: 256M
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        env:
+        - name: KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: KUBERNETES_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+      - name: telegraf
+        image: docker.io/library/telegraf:1.32.1-alpine
+        env:
+        - name: KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: KUBERNETES_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        volumeMounts:
+        - name: telegraf-config-volume
+          mountPath: /etc/telegraf/telegraf.conf
+          subPath: telegraf.conf
+      volumes:
+      - name: nginx-config-volume
+        configMap:
+          name: nginx-config
+      - name: telegraf-config-volume
+        configMap:
+          name: telegraf-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

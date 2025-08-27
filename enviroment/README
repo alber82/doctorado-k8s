@@ -1,0 +1,82 @@
+Como montar el cluster
+
+Necesitamos montar las imagenes en las tarjetas, para ello instalar version preinstalled de ubuntu en ellas
+
+USB=/dev/mmcblk0
+sudo wipefs -a -f ${USB}
+IMG=ubuntu-24.04.1-preinstalled-server-arm64+raspi.img.xz
+URL_IMG=https://cdimage.ubuntu.com/releases/24.04/release/${IMG}
+xz -d < img/ubuntu-24.04.1-preinstalled-server-arm64+raspi.img.xz - | sudo dd bs=100M of=${USB}
+
+Step 5: Mount system-boot in the burned image
+
+SYSTEM_BOOT_MOUNT=/tmp/pi-disk
+sudo mkdir ${SYSTEM_BOOT_MOUNT}
+# Mount first partition of device /dev/sdb1 corresponding with system-boot partion
+sudo mount ${USB}1 ${SYSTEM_BOOT_MOUNT}
+Step 6: Copy cloud-init configuration files
+
+sudo cp user-data ${SYSTEM_BOOT_MOUNT}
+sudo cp network-config ${SYSTEM_BOOT_MOUNT}
+Step 7: Unmount system-boot partition
+
+sudo umount ${SYSTEM_BOOT_MOUNT}
+
+
+generar claves en todos los nodos y crear authorized_keys y /etc/hosts -- enprincipio resuelto con script setup-cluster-acces.sh
+
+posteriormente para instalar k3s
+
+master
+
+curl -sfL https://get.k3s.io | \
+  INSTALL_K3S_VERSION="v1.30.5+k3s1" \
+  sh -s - --disable traefik --flannel-backend=none --disable-network-policy
+
+obtenemos token
+
+sudo cat /var/lib/rancher/k3s/server/node-token
+
+¿Dónde está el kubeconfig? /etc/rancher/k3s/k3s.yaml
+
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+kubectl get nodes
+
+Worker
+
+curl -sfL https://get.k3s.io | \
+INSTALL_K3S_VERSION=v1.30.5+k3s1 \
+K3S_URL=https://192.168.1.220:6443 \
+K3S_TOKEN=K1004ecb5ba2b86b5a3981c48d527c82929ef13f58594d4fb5ad50cbf590823d1e3::server:d1d5afc3e61ffeec2a92ea491ca20f2c \
+sh -s -
+// --node-taint="" --node-name=worker05
+
+  ---
+
+bootstrap
+Trae KUBECONFIG
+
+instalar helm
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+CILLIUM
+
+helm repo add cilium https://helm.cilium.io/
+helm repo update
+
+helm install cilium cilium/cilium --version 1.16.2 \
+  --namespace kube-system \
+  --set k8sServiceHost=192.168.1.220 \
+  --set k8sServicePort=6443 \
+  --set kubeProxyReplacement=true \
+  --set k8sRequiresIpMasqAgent=false \
+  --set ipam.mode=kubernetes \
+  --set hubble.enabled=true \
+  --set hubble.ui.enabled=true \
+  --set hubble.relay.enabled=true
+
+kubectl -n kube-system get pods -l k8s-app=cilium
+
+Instalar solucion de monitorizacion
+
+En install.sh pasos para instalar monitorizacion e influx

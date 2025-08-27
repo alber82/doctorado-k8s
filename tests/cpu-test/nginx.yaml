@@ -1,0 +1,196 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openresty-fibo-config
+  namespace: nginx
+data:
+  nginx.conf: |
+    worker_processes 1;
+    events {}
+    http {
+        include       mime.types;
+        default_type  application/json;
+        server {
+            listen 80;
+            location /fibonacci {
+                content_by_lua_file /etc/nginx/fibo.lua;
+            }
+            location /status {
+                stub_status;
+                access_log off;
+                allow all;
+            }
+        }
+    }
+  fibo.lua: |
+    local args = ngx.req.get_uri_args()
+    local n = tonumber(args["n"]) or 0
+    local function fib(x)
+      if x < 2 then return x end
+      return fib(x - 1) + fib(x - 2)
+    end
+    local function fib(x)
+        if x < 2 then return x end
+        local a, b = 0, 1
+        for i = 2, x do
+            a, b = b, a + b
+        end
+        return b
+    end
+    ngx.header.content_type = 'application/json'
+    ngx.say(string.format('{"n":%d,"result":%d}', n, fib(n)))
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-fibo-config
+  namespace: nginx
+  labels:
+    app: telegraf
+data:
+  telegraf.conf: |
+    [agent]
+      interval = "10s"
+      round_interval = true
+      metric_batch_size = 10000
+      metric_buffer_limit = 200000
+      collection_jitter = "0s"
+      flush_interval = "10s"
+      flush_jitter = "0s"
+      precision = ""
+      debug = true
+      quiet = false
+      logfile = ""
+      hostname = "$HOSTNAME"
+      omit_hostname = false
+
+    [[processors.enum]]
+      [[processors.enum.mapping]]
+        field = "status"
+        dest = "status_code"
+        [processors.enum.mapping.value_mappings]
+          healthy = 1
+          problem = 2
+          critical = 3
+
+    [[outputs.influxdb_v2]]
+      urls = ["http://influxdb-influxdb2.monitoring:80"]
+      token = "klsjdaioqwehrqoikdnmxcq"
+      organization = "uclm"
+      bucket = "doctorado"
+
+    [[inputs.nginx]]
+      urls = ["http://localhost/status"]
+      tagexclude = ["url"]
+      [inputs.nginx.tags]
+        instance = "$HOSTNAME"
+        node = "$KUBERNETES_NODE_NAME"
+        pod = "$KUBERNETES_POD_NAME"
+        node_ip  = "$NODE_IP"      
+
+    [[inputs.http_response]]
+      urls = ["http://localhost"]
+      response_timeout = "10s"
+      method = "GET"
+      [inputs.http_response.tags]
+        instance = "$HOSTNAME"
+        node = "$KUBERNETES_NODE_NAME"
+        pod = "$KUBERNETES_POD_NAME"
+        node_ip  = "$NODE_IP"      
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openresty-fibo
+  namespace: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openresty-fibo
+  template:
+    metadata:
+      labels:
+        app: openresty-fibo
+    spec:
+      schedulerName: influxdbmetricsschedulercpu
+      #schedulerName: randomscheduler
+      containers:
+        - name: openresty
+          image: openresty/openresty:alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: "6Gi"
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: "10Gi"
+          volumeMounts:
+            - name: openresty-config
+              mountPath: /usr/local/openresty/nginx/conf/nginx.conf
+              subPath: nginx.conf
+            - name: openresty-config
+              mountPath: /etc/nginx/fibo.lua
+              subPath: fibo.lua
+            - name: scratch
+              mountPath: /data
+          env:
+            - name: KUBERNETES_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: KUBERNETES_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+        - name: telegraf
+          image: docker.io/library/telegraf:1.32.1-alpine
+          env:
+            - name: KUBERNETES_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: KUBERNETES_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          volumeMounts:
+            - name: telegraf-config
+              mountPath: /etc/telegraf/telegraf.conf
+              subPath: telegraf.conf
+      volumes:
+        - name: openresty-config
+          configMap:
+            name: openresty-fibo-config
+        - name: telegraf-config
+          configMap:
+            name: telegraf-fibo-config
+        - name: scratch
+          emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: openresty-fibo
+  namespace: nginx
+spec:
+  selector:
+    app: openresty-fibo
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

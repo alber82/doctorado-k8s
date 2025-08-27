@@ -1,0 +1,28 @@
+---
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: k6-nginx
+spec:
+  parallelism: 1
+  script:
+    configMap:
+      name: 'k6-nginx-test'
+      file: 'nginx-test.js'
+  runner:
+    resources:
+      requests:
+        cpu: 3000m
+        memory: 3000M
+      limits:
+        cpu: 3100m
+        memory: 3072M
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - master01

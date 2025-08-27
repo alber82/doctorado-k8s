@@ -1,0 +1,29 @@
+---
+- name: Descargar e instalar K3s master
+  shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik --write-kubeconfig-mode 644" sh -
+  args:
+    creates: /etc/systemd/system/k3s.service
+
+- name: Esperar a que K3s esté activo
+  shell: kubectl get nodes
+  register: k3s_status
+  retries: 10
+  delay: 5
+  until: k3s_status.rc == 0
+
+- name: Obtener node-token
+  slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: token_content
+
+- name: Guardar node-token para workers
+  set_fact:
+    k3s_node_token: "{{ token_content['content'] | b64decode }}"
+
+- name: Guardar token en hostvars para workers
+  add_host:
+    name: "{{ item }}"
+    groups: joined
+    k3s_token: "{{ k3s_node_token }}"
+  loop: "{{ groups['worker'] }}"

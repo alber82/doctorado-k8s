@@ -1,2 +1,2 @@
 kubectl create configmap k6-test --from-file nginx-test.js
-kubectl apply -f k6-nginx.yaml
+kubectl apply -f k6-nginx-test.yaml

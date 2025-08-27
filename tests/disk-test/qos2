@@ -1,0 +1,1239 @@
+¿Qué hace esta consulta?
+Agrupa los datos por nodo (node es una etiqueta que tú mismo inyectas con Telegraf).
+Calcula la diferencia de solicitudes entre intervalos de 1 minuto (aggregateWindow + derivative).
+Mide el throughput como peticiones por segundo (RPS) por nodo.
+
+ESTO SE DEBE GENERAR
+
+influx query  'import "math"
+First = from(bucket: "doctorado")
+  |> range(start: -5m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "diskio")
+  |> filter(fn: (r) => r["_field"] == "read_time")
+  |> group(columns: ["node_ip"], mode:"by")
+  |> keep(columns: ["node_ip", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -5m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "diskio")
+  |> filter(fn: (r) => r["_field"] == "read_time")
+  |> group(columns: [ "node_ip"], mode:"by")
+  |> keep(columns: ["node_ip", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with  _value: math.abs(x: float(v: r._value))}))'
+
+
+  |> filter(fn: (r) => r["name"] == "sda2" )
+/////MAL
+ influx query 'from(bucket: "doctorado")
+  |> range(start: -105m, stop: -1m)
+  |> filter(fn: (r) => r["_measurement"] == "diskio")
+  |> filter(fn: (r) => r["_field"] == "read_time")
+  |> filter(fn: (r) => r["name"] == "sda3")
+    |> aggregateWindow(every: 3m, fn: max, createEmpty: false)
+    |> derivative(unit: 1s, nonNegative: true)
+    |> group(columns: ["node"])
+    |> rename(columns: {_value: "average_read_time_per_node"})
+    |> filter(fn: (r) => r.average_read_time_per_node != 0)
+    |> keep(columns: ["_time", "node", "average_read_time_per_node"])'
+
+ influx query 'from(bucket: "doctorado")
+  |> range(start: -105m, stop: -5m)
+  |> filter(fn: (r) => r["_measurement"] == "diskio")
+  |> filter(fn: (r) => r["_field"] == "write_time")
+ |> filter(fn: (r) => r["name"] == "sda3")
+  |> aggregateWindow(every: 3m, fn: max, createEmpty: false)
+    |> derivative(unit: 1s, nonNegative: true)
+    |> group(columns: ["node"])
+    |> rename(columns: {_value: "average_write_time_per_node"})
+    |> filter(fn: (r) => r.average_write_time_per_node != 0)
+    |> keep(columns: ["_time", "node", "average_write_time_per_node"])'
+
+/////
+
+
+ influx query 'from(bucket: "doctorado")
+  |> range(start: -117m, stop: -17m)
+  |> filter(fn: (r) => r._measurement == "diskio" and r._field == "read_time" ) //and r.name == "sda3")
+  |> drop(columns: ["host", "_start", "_stop", "_measurement", "_field", "name"])
+  |> group(columns: ["node"])
+  |> aggregateWindow(every: 3m, fn: max, createEmpty: false)
+  |> derivative(unit: 1s, nonNegative: true)
+  |> filter(fn: (r) => r._value != 0.0)
+  |> keep(columns: ["_time", "node", "_value"])
+  |> rename(columns: {_value: "average_read_time_per_node"})'
+
+
+
+   influx query 'from(bucket: "doctorado")
+  |> range(start: -117m, stop: -17m)
+    |> filter(fn: (r) => r._measurement == "diskio" and r._field == "write_time") // and r.name == "sda3")
+    |> drop(columns: ["host", "_start", "_stop", "_measurement", "_field", "name"])
+    |> group(columns: ["node"])
+    |> aggregateWindow(every: 3m, fn: max, createEmpty: false)
+    |> derivative(unit: 1s, nonNegative: true)
+    |> filter(fn: (r) => r._value != 0.0)
+    |> keep(columns: ["_time", "node", "_value"])
+    |> rename(columns: {_value: "average_write_time_per_node"})'
+
+k8s
+
+k get pods -n nginx -o wide
+
+NAME                           READY   STATUS    RESTARTS      AGE     IP           NODE       NOMINATED NODE   READINESS GATES
+disk-stress-55fff88474-2zqmv   2/2     Running   2 (22m ago)   96m     10.0.2.212   worker02   <none>           <none>
+disk-stress-55fff88474-42lhg   2/2     Running   0             70m     10.0.1.67    worker01   <none>           <none>
+disk-stress-55fff88474-468w9   2/2     Running   0             75m     10.0.2.235   worker02   <none>           <none>
+disk-stress-55fff88474-55mn8   2/2     Running   0             20m     10.0.4.35    worker04   <none>           <none>
+disk-stress-55fff88474-7r2kf   2/2     Running   0             45m     10.0.3.5     worker03   <none>           <none>
+disk-stress-55fff88474-8j62k   2/2     Running   0             5m12s   10.0.1.157   worker01   <none>           <none>
+disk-stress-55fff88474-8sgrr   2/2     Running   0             15m     10.0.2.57    worker02   <none>           <none>
+disk-stress-55fff88474-95gkm   2/2     Running   0             30m     10.0.1.76    worker01   <none>           <none>
+disk-stress-55fff88474-98q5s   2/2     Running   0             85m     10.0.1.198   worker01   <none>           <none>
+disk-stress-55fff88474-9qtr2   2/2     Running   0             10m     10.0.3.241   worker03   <none>           <none>
+disk-stress-55fff88474-hg6fv   2/2     Running   0             40m     10.0.4.161   worker04   <none>           <none>
+disk-stress-55fff88474-jl9gw   2/2     Running   0             25m     10.0.3.6     worker03   <none>           <none>
+disk-stress-55fff88474-kdxg7   2/2     Running   0             65m     10.0.3.128   worker03   <none>           <none>
+disk-stress-55fff88474-mg49c   2/2     Running   0             35m     10.0.2.56    worker02   <none>           <none>
+disk-stress-55fff88474-rpwxz   2/2     Running   0             50m     10.0.1.64    worker01   <none>           <none>
+disk-stress-55fff88474-s9xhl   2/2     Running   0             55m     10.0.2.92    worker02   <none>           <none>
+disk-stress-55fff88474-sb4b2   2/2     Running   0             60m     10.0.4.163   worker04   <none>           <none>
+disk-stress-55fff88474-sw9rp   2/2     Running   0             10s     10.0.4.24    worker04   <none>           <none>
+disk-stress-55fff88474-xbmbp   2/2     Running   0             80m     10.0.4.183   worker04   <none>           <none>
+disk-stress-55fff88474-xrfjt   2/2     Running   1 (21m ago)   90m     10.0.3.189   worker03   <none>           <none>
+
+
+
+
+k top nodes
+NAME       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
+master01   331m         8%       2177Mi          27%
+worker01   1672m        41%      2272Mi          28%
+worker02   1891m        47%      2495Mi          31%
+worker03   1205m        30%      2227Mi          28%
+worker04   562m         14%      1724Mi          43%
+
+k top pods -n nginx
+
+NAME                           CPU(cores)   MEMORY(bytes)
+disk-stress-55fff88474-2zqmv   501m         283Mi
+disk-stress-55fff88474-42lhg   498m         363Mi
+disk-stress-55fff88474-468w9   502m         368Mi
+disk-stress-55fff88474-55mn8   48m          179Mi
+disk-stress-55fff88474-7r2kf   57m          310Mi
+disk-stress-55fff88474-8j62k   26m          139Mi
+disk-stress-55fff88474-8sgrr   36m          168Mi
+disk-stress-55fff88474-95gkm   141m         146Mi
+disk-stress-55fff88474-98q5s   502m         370Mi
+disk-stress-55fff88474-9qtr2   39m          205Mi
+disk-stress-55fff88474-hg6fv   72m          164Mi
+disk-stress-55fff88474-jl9gw   64m          130Mi
+disk-stress-55fff88474-kdxg7   503m         335Mi
+disk-stress-55fff88474-mg49c   258m         159Mi
+disk-stress-55fff88474-rpwxz   501m         324Mi
+disk-stress-55fff88474-s9xhl   502m         332Mi
+disk-stress-55fff88474-sb4b2   94m          162Mi
+disk-stress-55fff88474-sw9rp   34m          172Mi
+disk-stress-55fff88474-xbmbp   151m         238Mi
+disk-stress-55fff88474-xrfjt   501m         346Mi
+
+ k describe nodes master01
+master
+
+  Resource           Requests          Limits
+  --------           --------          ------
+  cpu                3400m (85%)       3400m (85%)
+  memory             3331350016 (40%)  3445293056 (41%)
+
+w1
+
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1350m (33%)      2500m (62%)
+  memory             1260240Ki (15%)  2560M (30%)
+
+
+
+
+
+w2
+
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1350m (33%)      2500m (62%)
+  memory             1260240Ki (15%)  2560M (30%)
+
+
+
+
+
+w3
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1450m (36%)      2500m (62%)
+  memory             1331920Ki (16%)  2674080Ki (32%)
+
+
+
+
+w4
+
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1360m (34%)      3 (75%)
+  memory             1325776Ki (32%)  2694217728 (64%)
+
+
+
+
+
+average_write_time_per_node
+
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker01  2025-08-21T20:03:00.000000000Z                  65.89444444444445
+              worker01  2025-08-21T20:06:00.000000000Z                 63.105555555555554
+              worker01  2025-08-21T20:09:00.000000000Z                 60.861111111111114
+              worker01  2025-08-21T20:12:00.000000000Z                  68.42777777777778
+              worker01  2025-08-21T20:15:00.000000000Z                 171.40555555555557
+              worker01  2025-08-21T20:18:00.000000000Z                 143.44444444444446
+              worker01  2025-08-21T20:21:00.000000000Z                 124.06111111111112
+              worker01  2025-08-21T20:24:00.000000000Z                 149.82222222222222
+              worker01  2025-08-21T20:27:00.000000000Z                 142.76111111111112
+              worker01  2025-08-21T20:30:00.000000000Z                 141.82777777777778
+              worker01  2025-08-21T20:33:00.000000000Z                 243.85555555555555
+              worker01  2025-08-21T20:36:00.000000000Z                              314.6
+              worker01  2025-08-21T20:39:00.000000000Z                  324.1111111111111
+              worker01  2025-08-21T20:42:00.000000000Z                  371.9277777777778
+              worker01  2025-08-21T20:45:00.000000000Z                 295.02777777777777
+              worker01  2025-08-21T20:48:00.000000000Z                 318.85555555555555
+              worker01  2025-08-21T20:51:00.000000000Z                  278.2055555555556
+              worker01  2025-08-21T20:54:00.000000000Z                             465.45
+              worker01  2025-08-21T20:57:00.000000000Z                              455.4
+              worker01  2025-08-21T21:00:00.000000000Z                 296.97777777777776
+              worker01  2025-08-21T21:03:00.000000000Z                              306.1
+              worker01  2025-08-21T21:06:00.000000000Z                              310.2
+              worker01  2025-08-21T21:09:00.000000000Z                               31.7
+              worker01  2025-08-21T21:12:00.000000000Z                  98.28333333333333
+              worker01  2025-08-21T21:15:00.000000000Z                 44.672222222222224
+              worker01  2025-08-21T21:18:00.000000000Z                 105.71666666666667
+              worker01  2025-08-21T21:21:00.000000000Z                  67.30555555555556
+              worker01  2025-08-21T21:24:00.000000000Z                  75.21111111111111
+              worker01  2025-08-21T21:27:00.000000000Z                  77.11111111111111
+              worker01  2025-08-21T21:29:23.041427610Z                  89.84110557843447
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker02  2025-08-21T19:51:00.000000000Z                  32.96111111111111
+              worker02  2025-08-21T19:54:00.000000000Z                  48.97222222222222
+              worker02  2025-08-21T19:57:00.000000000Z                  60.18888888888889
+              worker02  2025-08-21T20:00:00.000000000Z                  56.78888888888889
+              worker02  2025-08-21T20:03:00.000000000Z                  67.21666666666667
+              worker02  2025-08-21T20:06:00.000000000Z                  59.28333333333333
+              worker02  2025-08-21T20:09:00.000000000Z                 163.48888888888888
+              worker02  2025-08-21T20:12:00.000000000Z                 146.17777777777778
+              worker02  2025-08-21T20:15:00.000000000Z                 138.64444444444445
+              worker02  2025-08-21T20:18:00.000000000Z                  157.4111111111111
+              worker02  2025-08-21T20:21:00.000000000Z                 143.06666666666666
+              worker02  2025-08-21T20:24:00.000000000Z                 133.90555555555557
+              worker02  2025-08-21T20:27:00.000000000Z                 164.26666666666668
+              worker02  2025-08-21T20:30:00.000000000Z                 310.85555555555555
+              worker02  2025-08-21T20:33:00.000000000Z                 331.98333333333335
+              worker02  2025-08-21T20:36:00.000000000Z                              224.7
+              worker02  2025-08-21T20:39:00.000000000Z                  297.6277777777778
+              worker02  2025-08-21T20:42:00.000000000Z                  272.6722222222222
+              worker02  2025-08-21T20:45:00.000000000Z                  260.1722222222222
+              worker02  2025-08-21T20:48:00.000000000Z                  573.1611111111112
+              worker02  2025-08-21T20:51:00.000000000Z                  550.2166666666667
+              worker02  2025-08-21T20:54:00.000000000Z                  756.6111111111111
+              worker02  2025-08-21T20:57:00.000000000Z                  531.2666666666667
+              worker02  2025-08-21T21:00:00.000000000Z                 232.87222222222223
+              worker02  2025-08-21T21:03:00.000000000Z                 187.49444444444444
+              worker02  2025-08-21T21:06:00.000000000Z                  158.4111111111111
+              worker02  2025-08-21T21:09:00.000000000Z                              82.15
+              worker02  2025-08-21T21:12:00.000000000Z                   94.7611111111111
+              worker02  2025-08-21T21:15:00.000000000Z                  61.24444444444445
+              worker02  2025-08-21T21:18:00.000000000Z                  86.66111111111111
+              worker02  2025-08-21T21:21:00.000000000Z                               78.5
+              worker02  2025-08-21T21:24:00.000000000Z                  86.26666666666667
+              worker02  2025-08-21T21:27:00.000000000Z                 101.40555555555555
+              worker02  2025-08-21T21:29:23.041427610Z                 109.01037734686238
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker03  2025-08-21T19:57:00.000000000Z                 53.327777777777776
+              worker03  2025-08-21T20:00:00.000000000Z                  55.68888888888889
+              worker03  2025-08-21T20:03:00.000000000Z                  62.16111111111111
+              worker03  2025-08-21T20:06:00.000000000Z                  72.96666666666667
+              worker03  2025-08-21T20:09:00.000000000Z                 55.333333333333336
+              worker03  2025-08-21T20:12:00.000000000Z                  56.71111111111111
+              worker03  2025-08-21T20:15:00.000000000Z                  66.36666666666666
+              worker03  2025-08-21T20:18:00.000000000Z                 125.60555555555555
+              worker03  2025-08-21T20:21:00.000000000Z                 128.49444444444444
+              worker03  2025-08-21T20:24:00.000000000Z                 119.65555555555555
+              worker03  2025-08-21T20:27:00.000000000Z                 154.24444444444444
+              worker03  2025-08-21T20:30:00.000000000Z                             117.45
+              worker03  2025-08-21T20:33:00.000000000Z                 117.83333333333333
+              worker03  2025-08-21T20:36:00.000000000Z                 112.39444444444445
+              worker03  2025-08-21T20:39:00.000000000Z                 187.16666666666666
+              worker03  2025-08-21T20:42:00.000000000Z                 197.32222222222222
+              worker03  2025-08-21T20:45:00.000000000Z                             170.25
+              worker03  2025-08-21T20:48:00.000000000Z                 187.89444444444445
+              worker03  2025-08-21T20:51:00.000000000Z                  193.7888888888889
+              worker03  2025-08-21T20:54:00.000000000Z                 213.90555555555557
+              worker03  2025-08-21T20:57:00.000000000Z                 162.69444444444446
+              worker03  2025-08-21T21:00:00.000000000Z                 219.30555555555554
+              worker03  2025-08-21T21:03:00.000000000Z                 201.92222222222222
+              worker03  2025-08-21T21:06:00.000000000Z                 179.91666666666666
+              worker03  2025-08-21T21:09:00.000000000Z                  26.92222222222222
+              worker03  2025-08-21T21:12:00.000000000Z                  72.25555555555556
+              worker03  2025-08-21T21:15:00.000000000Z                 152.55555555555554
+              worker03  2025-08-21T21:18:00.000000000Z                  57.02777777777778
+              worker03  2025-08-21T21:21:00.000000000Z                  71.37222222222222
+              worker03  2025-08-21T21:24:00.000000000Z                  83.83888888888889
+              worker03  2025-08-21T21:27:00.000000000Z                  70.18888888888888
+              worker03  2025-08-21T21:29:23.041427610Z                  90.14171779070375
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker04  2025-08-21T20:06:00.000000000Z                 3.6333333333333333
+              worker04  2025-08-21T20:09:00.000000000Z                  5.105555555555555
+              worker04  2025-08-21T20:12:00.000000000Z                  2.088888888888889
+              worker04  2025-08-21T20:15:00.000000000Z                 3.2055555555555557
+              worker04  2025-08-21T20:18:00.000000000Z                 2.4444444444444446
+              worker04  2025-08-21T20:21:00.000000000Z                 3.4277777777777776
+              worker04  2025-08-21T20:24:00.000000000Z                  51.02777777777778
+              worker04  2025-08-21T20:27:00.000000000Z                 3.4555555555555557
+              worker04  2025-08-21T20:30:00.000000000Z                  5.227777777777778
+              worker04  2025-08-21T20:33:00.000000000Z                  4.911111111111111
+              worker04  2025-08-21T20:36:00.000000000Z                  4.555555555555555
+              worker04  2025-08-21T20:39:00.000000000Z                  5.305555555555555
+              worker04  2025-08-21T20:42:00.000000000Z                  4.416666666666667
+              worker04  2025-08-21T20:45:00.000000000Z                 62.855555555555554
+              worker04  2025-08-21T20:48:00.000000000Z                  5.927777777777778
+              worker04  2025-08-21T20:51:00.000000000Z                 15.633333333333333
+              worker04  2025-08-21T20:54:00.000000000Z                             455.35
+              worker04  2025-08-21T20:57:00.000000000Z                              496.2
+              worker04  2025-08-21T21:00:00.000000000Z                 440.21666666666664
+              worker04  2025-08-21T21:03:00.000000000Z                 473.28333333333336
+              worker04  2025-08-21T21:06:00.000000000Z                  458.8888888888889
+              worker04  2025-08-21T21:09:00.000000000Z                  82.06666666666666
+              worker04  2025-08-21T21:12:00.000000000Z                 103.21111111111111
+              worker04  2025-08-21T21:15:00.000000000Z                 127.24444444444444
+              worker04  2025-08-21T21:18:00.000000000Z                  155.7277777777778
+              worker04  2025-08-21T21:21:00.000000000Z                 183.26111111111112
+              worker04  2025-08-21T21:24:00.000000000Z                  285.1611111111111
+              worker04  2025-08-21T21:27:00.000000000Z                 288.93333333333334
+              worker04  2025-08-21T21:29:23.041427610Z                  303.5064786850948
+
+
+
+average_read_time_per_node
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker01  2025-08-21T20:03:00.000000000Z                 9.161111111111111
+              worker01  2025-08-21T20:06:00.000000000Z                12.244444444444444
+              worker01  2025-08-21T20:09:00.000000000Z                13.466666666666667
+              worker01  2025-08-21T20:12:00.000000000Z                 15.88888888888889
+              worker01  2025-08-21T20:15:00.000000000Z                26.466666666666665
+              worker01  2025-08-21T20:18:00.000000000Z                 37.50555555555555
+              worker01  2025-08-21T20:21:00.000000000Z                39.772222222222226
+              worker01  2025-08-21T20:24:00.000000000Z                 43.96111111111111
+              worker01  2025-08-21T20:27:00.000000000Z                 47.92777777777778
+              worker01  2025-08-21T20:30:00.000000000Z                 44.18333333333333
+              worker01  2025-08-21T20:33:00.000000000Z                 73.53888888888889
+              worker01  2025-08-21T20:36:00.000000000Z                 92.90555555555555
+              worker01  2025-08-21T20:39:00.000000000Z                127.44444444444444
+              worker01  2025-08-21T20:42:00.000000000Z                128.88888888888889
+              worker01  2025-08-21T20:45:00.000000000Z                121.61111111111111
+              worker01  2025-08-21T20:48:00.000000000Z                120.47222222222223
+              worker01  2025-08-21T20:51:00.000000000Z                 95.18333333333334
+              worker01  2025-08-21T20:54:00.000000000Z                164.69444444444446
+              worker01  2025-08-21T20:57:00.000000000Z                 174.2722222222222
+              worker01  2025-08-21T21:00:00.000000000Z                128.77777777777777
+              worker01  2025-08-21T21:03:00.000000000Z                 138.2111111111111
+              worker01  2025-08-21T21:06:00.000000000Z                117.66111111111111
+              worker01  2025-08-21T21:09:00.000000000Z                 6.338888888888889
+              worker01  2025-08-21T21:12:00.000000000Z                 21.63888888888889
+              worker01  2025-08-21T21:15:00.000000000Z                 9.761111111111111
+              worker01  2025-08-21T21:18:00.000000000Z                16.488888888888887
+              worker01  2025-08-21T21:21:00.000000000Z                12.666666666666666
+              worker01  2025-08-21T21:24:00.000000000Z                12.833333333333334
+              worker01  2025-08-21T21:27:00.000000000Z                14.766666666666667
+              worker01  2025-08-21T21:28:41.148240311Z                 18.14168980456738
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker02  2025-08-21T20:00:00.000000000Z                10.394444444444444
+              worker02  2025-08-21T20:03:00.000000000Z                14.222222222222221
+              worker02  2025-08-21T20:06:00.000000000Z                15.127777777777778
+              worker02  2025-08-21T20:09:00.000000000Z                21.783333333333335
+              worker02  2025-08-21T20:12:00.000000000Z                34.983333333333334
+              worker02  2025-08-21T20:15:00.000000000Z                34.355555555555554
+              worker02  2025-08-21T20:18:00.000000000Z                45.144444444444446
+              worker02  2025-08-21T20:21:00.000000000Z                 40.00555555555555
+              worker02  2025-08-21T20:24:00.000000000Z                 45.81111111111111
+              worker02  2025-08-21T20:27:00.000000000Z                 46.19444444444444
+              worker02  2025-08-21T20:30:00.000000000Z                             80.05
+              worker02  2025-08-21T20:33:00.000000000Z                116.75555555555556
+              worker02  2025-08-21T20:36:00.000000000Z                 93.28333333333333
+              worker02  2025-08-21T20:39:00.000000000Z                115.49444444444444
+              worker02  2025-08-21T20:42:00.000000000Z                 90.66666666666667
+              worker02  2025-08-21T20:45:00.000000000Z                105.86111111111111
+              worker02  2025-08-21T20:48:00.000000000Z                202.02777777777777
+              worker02  2025-08-21T20:51:00.000000000Z                 196.0222222222222
+              worker02  2025-08-21T20:54:00.000000000Z                 307.4555555555556
+              worker02  2025-08-21T20:57:00.000000000Z                            296.75
+              worker02  2025-08-21T21:00:00.000000000Z                              99.7
+              worker02  2025-08-21T21:03:00.000000000Z                 73.14444444444445
+              worker02  2025-08-21T21:06:00.000000000Z                 61.97222222222222
+              worker02  2025-08-21T21:09:00.000000000Z                             10.95
+              worker02  2025-08-21T21:12:00.000000000Z                18.477777777777778
+              worker02  2025-08-21T21:15:00.000000000Z                11.294444444444444
+              worker02  2025-08-21T21:18:00.000000000Z                17.511111111111113
+              worker02  2025-08-21T21:21:00.000000000Z                17.844444444444445
+              worker02  2025-08-21T21:24:00.000000000Z                 20.06111111111111
+              worker02  2025-08-21T21:27:00.000000000Z                22.072222222222223
+              worker02  2025-08-21T21:28:41.148240311Z                24.459150177928993
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker03  2025-08-21T19:57:00.000000000Z                4.8277777777777775
+              worker03  2025-08-21T20:00:00.000000000Z                 10.71111111111111
+              worker03  2025-08-21T20:03:00.000000000Z                13.733333333333333
+              worker03  2025-08-21T20:06:00.000000000Z                15.722222222222221
+              worker03  2025-08-21T20:09:00.000000000Z                15.827777777777778
+              worker03  2025-08-21T20:12:00.000000000Z                15.777777777777779
+              worker03  2025-08-21T20:15:00.000000000Z                15.966666666666667
+              worker03  2025-08-21T20:18:00.000000000Z                24.483333333333334
+              worker03  2025-08-21T20:21:00.000000000Z                 24.02777777777778
+              worker03  2025-08-21T20:24:00.000000000Z                32.644444444444446
+              worker03  2025-08-21T20:27:00.000000000Z                              37.4
+              worker03  2025-08-21T20:30:00.000000000Z                 35.28888888888889
+              worker03  2025-08-21T20:33:00.000000000Z                 36.32222222222222
+              worker03  2025-08-21T20:36:00.000000000Z                37.983333333333334
+              worker03  2025-08-21T20:39:00.000000000Z                 43.41111111111111
+              worker03  2025-08-21T20:42:00.000000000Z                52.672222222222224
+              worker03  2025-08-21T20:45:00.000000000Z                54.666666666666664
+              worker03  2025-08-21T20:48:00.000000000Z                 67.14444444444445
+              worker03  2025-08-21T20:51:00.000000000Z                 63.24444444444445
+              worker03  2025-08-21T20:54:00.000000000Z                 89.73333333333333
+              worker03  2025-08-21T20:57:00.000000000Z                 52.92777777777778
+              worker03  2025-08-21T21:00:00.000000000Z                 59.43888888888889
+              worker03  2025-08-21T21:03:00.000000000Z                 76.09444444444445
+              worker03  2025-08-21T21:06:00.000000000Z                 64.44444444444444
+              worker03  2025-08-21T21:09:00.000000000Z                                 6
+              worker03  2025-08-21T21:12:00.000000000Z                 16.36111111111111
+              worker03  2025-08-21T21:15:00.000000000Z                40.111111111111114
+              worker03  2025-08-21T21:18:00.000000000Z                 11.61111111111111
+              worker03  2025-08-21T21:21:00.000000000Z                13.316666666666666
+              worker03  2025-08-21T21:24:00.000000000Z                 18.06111111111111
+              worker03  2025-08-21T21:27:00.000000000Z                             18.85
+              worker03  2025-08-21T21:28:41.148240311Z                27.138386110919598
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker04  2025-08-21T20:24:00.000000000Z                 5.122222222222222
+              worker04  2025-08-21T20:27:00.000000000Z                27.455555555555556
+              worker04  2025-08-21T20:30:00.000000000Z                 34.51111111111111
+              worker04  2025-08-21T20:33:00.000000000Z                37.233333333333334
+              worker04  2025-08-21T20:36:00.000000000Z                 38.43888888888889
+              worker04  2025-08-21T20:39:00.000000000Z                 36.96111111111111
+              worker04  2025-08-21T20:42:00.000000000Z                40.172222222222224
+              worker04  2025-08-21T20:45:00.000000000Z                 48.96666666666667
+              worker04  2025-08-21T20:48:00.000000000Z                              65.9
+              worker04  2025-08-21T20:51:00.000000000Z                186.89444444444445
+              worker04  2025-08-21T20:54:00.000000000Z                186.22222222222223
+              worker04  2025-08-21T20:57:00.000000000Z                160.61111111111111
+              worker04  2025-08-21T21:00:00.000000000Z                116.04444444444445
+              worker04  2025-08-21T21:03:00.000000000Z                131.88333333333333
+              worker04  2025-08-21T21:06:00.000000000Z                115.13888888888889
+              worker04  2025-08-21T21:09:00.000000000Z                11.233333333333333
+              worker04  2025-08-21T21:12:00.000000000Z                22.616666666666667
+              worker04  2025-08-21T21:15:00.000000000Z                 16.32777777777778
+              worker04  2025-08-21T21:18:00.000000000Z                23.294444444444444
+              worker04  2025-08-21T21:21:00.000000000Z                29.011111111111113
+              worker04  2025-08-21T21:24:00.000000000Z                 45.16111111111111
+              worker04  2025-08-21T21:27:00.000000000Z                              47.4
+              worker04  2025-08-21T21:28:41.148240311Z                62.749485116942324
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------
+
+
+
+random
+
+
+NAME       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
+master01   361m         9%       2106Mi          26%
+worker01   2262m        56%      2724Mi          34%
+worker02   229m         5%       1698Mi          21%
+worker03   225m         5%       1653Mi          20%
+worker04   972m         24%      2158Mi          54%
+worker05   157m         4%       1102Mi          15%
+worker06   38m          0%       913Mi           11%
+worker07   39m          0%       991Mi           12%
+worker08   63m          1%       997Mi           12%
+
+  k get pods -n nginx -o wide
+
+NAME                           CPU(cores)   MEMORY(bytes)
+disk-stress-5fc5b4f5df-4mgd4   71m          283Mi
+disk-stress-5fc5b4f5df-9fhj2   80m          161Mi
+disk-stress-5fc5b4f5df-cdh78   43m          137Mi
+disk-stress-5fc5b4f5df-dqfrn   199m         227Mi
+disk-stress-5fc5b4f5df-gtgzc   98m          258Mi
+disk-stress-5fc5b4f5df-j64r9   502m         404Mi
+disk-stress-5fc5b4f5df-lfjlm   46m          125Mi
+disk-stress-5fc5b4f5df-m4pw5   37m          160Mi
+disk-stress-5fc5b4f5df-m5jr6   172m         144Mi
+disk-stress-5fc5b4f5df-n6bq8   502m         471Mi
+disk-stress-5fc5b4f5df-r4j2p   141m         138Mi
+disk-stress-5fc5b4f5df-rh8rq   152m         133Mi
+disk-stress-5fc5b4f5df-rs8vd   241m         134Mi
+disk-stress-5fc5b4f5df-tf86b   221m         276Mi
+disk-stress-5fc5b4f5df-v8kxl   46m          153Mi
+disk-stress-5fc5b4f5df-wc4h7   38m          163Mi
+disk-stress-5fc5b4f5df-x6gkh   501m         371Mi
+disk-stress-5fc5b4f5df-xj5p5   82m          253Mi
+disk-stress-5fc5b4f5df-zpx2r   79m          176Mi
+disk-stress-5fc5b4f5df-ztbwc   114m         212Mi
+
+
+
+NAME                           READY   STATUS    RESTARTS   AGE     IP           NODE       NOMINATED NODE   READINESS GATES
+disk-stress-5fc5b4f5df-4mgd4   2/2     Running   0          61m     10.0.3.41    worker03   <none>           <none>
+disk-stress-5fc5b4f5df-9fhj2   2/2     Running   0          51m     10.0.4.140   worker04   <none>           <none>
+disk-stress-5fc5b4f5df-cdh78   2/2     Running   0          46s     10.0.4.185   worker04   <none>           <none>
+disk-stress-5fc5b4f5df-dqfrn   2/2     Running   0          76m     10.0.4.148   worker04   <none>           <none>
+disk-stress-5fc5b4f5df-gtgzc   2/2     Running   0          66m     10.0.2.63    worker02   <none>           <none>
+disk-stress-5fc5b4f5df-j64r9   2/2     Running   0          86m     10.0.1.100   worker01   <none>           <none>
+disk-stress-5fc5b4f5df-lfjlm   2/2     Running   0          5m49s   10.0.2.199   worker02   <none>           <none>
+disk-stress-5fc5b4f5df-m4pw5   2/2     Running   0          10m     10.0.3.38    worker03   <none>           <none>
+disk-stress-5fc5b4f5df-m5jr6   2/2     Running   0          41m     10.0.1.236   worker01   <none>           <none>
+disk-stress-5fc5b4f5df-n6bq8   2/2     Running   0          91m     10.0.1.21    worker01   <none>           <none>
+disk-stress-5fc5b4f5df-r4j2p   2/2     Running   0          36m     10.0.1.42    worker01   <none>           <none>
+disk-stress-5fc5b4f5df-rh8rq   2/2     Running   0          31m     10.0.1.30    worker01   <none>           <none>
+disk-stress-5fc5b4f5df-rs8vd   2/2     Running   0          25m     10.0.1.161   worker01   <none>           <none>
+disk-stress-5fc5b4f5df-tf86b   2/2     Running   0          96m     10.0.4.41    worker04   <none>           <none>
+disk-stress-5fc5b4f5df-v8kxl   2/2     Running   0          20m     10.0.2.11    worker02   <none>           <none>
+disk-stress-5fc5b4f5df-wc4h7   2/2     Running   0          15m     10.0.3.6     worker03   <none>           <none>
+disk-stress-5fc5b4f5df-x6gkh   2/2     Running   0          71m     10.0.1.228   worker01   <none>           <none>
+disk-stress-5fc5b4f5df-xj5p5   2/2     Running   0          46m     10.0.4.55    worker04   <none>           <none>
+disk-stress-5fc5b4f5df-zpx2r   2/2     Running   0          56m     10.0.4.72    worker04   <none>           <none>
+disk-stress-5fc5b4f5df-ztbwc   2/2     Running   0          81m     10.0.4.245   worker04   <none>           <none>
+
+
+
+master
+
+  Resource           Requests          Limits
+  --------           --------          ------
+  cpu                3300m (82%)       3300m (82%)
+  memory             3197132288 (38%)  3311075328 (39%)
+
+
+
+w1
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1850m (46%)      3500m (87%)
+  memory             1760240Ki (21%)  3584M (43%)
+
+
+
+
+w2
+
+  Resource           Requests        Limits
+  --------           --------        ------
+  cpu                950m (23%)      1600m (40%)
+  memory             891312Ki (10%)  1670217728 (20%)
+
+
+
+
+w3
+  Resource           Requests        Limits
+  --------           --------        ------
+  cpu                950m (23%)      1500m (37%)
+  memory             831920Ki (10%)  1674080Ki (20%)
+
+
+w4
+
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1860m (46%)      4 (100%)
+  memory             1825776Ki (44%)  3718217728 (88%)
+
+
+
+
+average_write_time_per_node
+
+esult: _result
+Result: _result
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker01  2025-08-22T05:48:00.000000000Z                 115.36666666666666
+              worker01  2025-08-22T05:51:00.000000000Z                  99.09444444444445
+              worker01  2025-08-22T05:54:00.000000000Z                  129.2722222222222
+              worker01  2025-08-22T05:57:00.000000000Z                 130.83333333333334
+              worker01  2025-08-22T06:00:00.000000000Z                 116.72222222222223
+              worker01  2025-08-22T06:03:00.000000000Z                 210.40555555555557
+              worker01  2025-08-22T06:06:00.000000000Z                  253.9111111111111
+              worker01  2025-08-22T06:09:00.000000000Z                 229.83333333333334
+              worker01  2025-08-22T06:12:00.000000000Z                  313.9277777777778
+              worker01  2025-08-22T06:15:00.000000000Z                             257.05
+              worker01  2025-08-22T06:18:00.000000000Z                 316.52222222222224
+              worker01  2025-08-22T06:21:00.000000000Z                 276.40555555555557
+              worker01  2025-08-22T06:24:00.000000000Z                  269.1111111111111
+              worker01  2025-08-22T06:27:00.000000000Z                  274.1611111111111
+              worker01  2025-08-22T06:30:00.000000000Z                 217.48333333333332
+              worker01  2025-08-22T06:33:00.000000000Z                 176.85555555555555
+              worker01  2025-08-22T06:36:00.000000000Z                  345.9555555555556
+              worker01  2025-08-22T06:39:00.000000000Z                 395.84444444444443
+              worker01  2025-08-22T06:42:00.000000000Z                 371.49444444444447
+              worker01  2025-08-22T06:45:00.000000000Z                  430.1277777777778
+              worker01  2025-08-22T06:48:00.000000000Z                 450.02222222222224
+              worker01  2025-08-22T06:51:00.000000000Z                 433.93333333333334
+              worker01  2025-08-22T06:54:00.000000000Z                             197.95
+              worker01  2025-08-22T06:57:00.000000000Z                  170.0388888888889
+              worker01  2025-08-22T07:00:00.000000000Z                 198.36666666666667
+              worker01  2025-08-22T07:03:00.000000000Z                 107.38333333333334
+              worker01  2025-08-22T07:06:00.000000000Z                  60.12777777777778
+              worker01  2025-08-22T07:09:00.000000000Z                  66.54444444444445
+              worker01  2025-08-22T07:12:00.000000000Z                  68.93888888888888
+              worker01  2025-08-22T07:15:00.000000000Z                               60.5
+              worker01  2025-08-22T07:16:43.999792201Z                  65.04820689377254
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker02  2025-08-22T06:12:00.000000000Z                               67.3
+              worker02  2025-08-22T06:15:00.000000000Z                               60.7
+              worker02  2025-08-22T06:18:00.000000000Z                  69.71666666666667
+              worker02  2025-08-22T06:21:00.000000000Z                 58.083333333333336
+              worker02  2025-08-22T06:24:00.000000000Z                  76.14444444444445
+              worker02  2025-08-22T06:27:00.000000000Z                  74.62777777777778
+              worker02  2025-08-22T06:30:00.000000000Z                  64.10555555555555
+              worker02  2025-08-22T06:33:00.000000000Z                  54.25555555555555
+              worker02  2025-08-22T06:36:00.000000000Z                  57.51111111111111
+              worker02  2025-08-22T06:39:00.000000000Z                  50.90555555555556
+              worker02  2025-08-22T06:42:00.000000000Z                 51.144444444444446
+              worker02  2025-08-22T06:45:00.000000000Z                  45.21666666666667
+              worker02  2025-08-22T06:48:00.000000000Z                  46.47222222222222
+              worker02  2025-08-22T06:51:00.000000000Z                 37.016666666666666
+              worker02  2025-08-22T06:54:00.000000000Z                  97.52777777777777
+              worker02  2025-08-22T06:57:00.000000000Z                  78.91666666666667
+              worker02  2025-08-22T07:00:00.000000000Z                               56.7
+              worker02  2025-08-22T07:03:00.000000000Z                  46.92777777777778
+              worker02  2025-08-22T07:06:00.000000000Z                  36.12222222222222
+              worker02  2025-08-22T07:09:00.000000000Z                  91.46111111111111
+              worker02  2025-08-22T07:12:00.000000000Z                  55.71666666666667
+              worker02  2025-08-22T07:15:00.000000000Z                               56.9
+              worker02  2025-08-22T07:16:43.999792201Z                  69.34629240471361
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker03  2025-08-22T06:18:00.000000000Z                              57.15
+              worker03  2025-08-22T06:21:00.000000000Z                  73.54444444444445
+              worker03  2025-08-22T06:24:00.000000000Z                 57.894444444444446
+              worker03  2025-08-22T06:27:00.000000000Z                 60.144444444444446
+              worker03  2025-08-22T06:30:00.000000000Z                  74.53888888888889
+              worker03  2025-08-22T06:33:00.000000000Z                  53.44444444444444
+              worker03  2025-08-22T06:36:00.000000000Z                  52.37777777777778
+              worker03  2025-08-22T06:39:00.000000000Z                 62.922222222222224
+              worker03  2025-08-22T06:42:00.000000000Z                 46.955555555555556
+              worker03  2025-08-22T06:45:00.000000000Z                                 46
+              worker03  2025-08-22T06:48:00.000000000Z                 40.477777777777774
+              worker03  2025-08-22T06:51:00.000000000Z                  33.37222222222222
+              worker03  2025-08-22T06:54:00.000000000Z                 32.266666666666666
+              worker03  2025-08-22T06:57:00.000000000Z                  48.58888888888889
+              worker03  2025-08-22T07:00:00.000000000Z                  98.87222222222222
+              worker03  2025-08-22T07:03:00.000000000Z                  62.32222222222222
+              worker03  2025-08-22T07:06:00.000000000Z                  94.78888888888889
+              worker03  2025-08-22T07:09:00.000000000Z                  54.34444444444444
+              worker03  2025-08-22T07:12:00.000000000Z                  47.08888888888889
+              worker03  2025-08-22T07:15:00.000000000Z                              53.45
+              worker03  2025-08-22T07:16:43.999792201Z                   59.6731961541393
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker04  2025-08-22T05:42:00.000000000Z                 14.833333333333334
+              worker04  2025-08-22T05:45:00.000000000Z                 1.5722222222222222
+              worker04  2025-08-22T05:48:00.000000000Z                                1.8
+              worker04  2025-08-22T05:51:00.000000000Z                  74.56666666666666
+              worker04  2025-08-22T05:54:00.000000000Z                 140.41666666666666
+              worker04  2025-08-22T05:57:00.000000000Z                 111.64444444444445
+              worker04  2025-08-22T06:00:00.000000000Z                 154.42777777777778
+              worker04  2025-08-22T06:03:00.000000000Z                 176.89444444444445
+              worker04  2025-08-22T06:06:00.000000000Z                 172.94444444444446
+              worker04  2025-08-22T06:09:00.000000000Z                 173.12777777777777
+              worker04  2025-08-22T06:12:00.000000000Z                 166.14444444444445
+              worker04  2025-08-22T06:15:00.000000000Z                 187.88888888888889
+              worker04  2025-08-22T06:18:00.000000000Z                             287.85
+              worker04  2025-08-22T06:21:00.000000000Z                  588.3055555555555
+              worker04  2025-08-22T06:24:00.000000000Z                  724.8611111111111
+              worker04  2025-08-22T06:27:00.000000000Z                  932.7055555555555
+              worker04  2025-08-22T06:30:00.000000000Z                  927.1111111111111
+              worker04  2025-08-22T06:33:00.000000000Z                  905.9944444444444
+              worker04  2025-08-22T06:36:00.000000000Z                  809.4333333333333
+              worker04  2025-08-22T06:39:00.000000000Z                  842.4722222222222
+              worker04  2025-08-22T06:42:00.000000000Z                  721.2888888888889
+              worker04  2025-08-22T06:45:00.000000000Z                              741.8
+              worker04  2025-08-22T06:48:00.000000000Z                  707.0111111111111
+              worker04  2025-08-22T06:51:00.000000000Z                  566.1444444444444
+              worker04  2025-08-22T06:54:00.000000000Z                 490.99444444444447
+              worker04  2025-08-22T06:57:00.000000000Z                  478.0388888888889
+              worker04  2025-08-22T07:00:00.000000000Z                  560.2777777777778
+              worker04  2025-08-22T07:03:00.000000000Z                 504.65555555555557
+              worker04  2025-08-22T07:06:00.000000000Z                  337.8777777777778
+              worker04  2025-08-22T07:09:00.000000000Z                             274.55
+              worker04  2025-08-22T07:12:00.000000000Z                 337.77222222222224
+              worker04  2025-08-22T07:15:00.000000000Z                 373.00555555555553
+              worker04  2025-08-22T07:16:43.999792201Z                  425.4239269487172
+
+
+
+
+average_read_time_per_node
+
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker01  2025-08-22T05:48:00.000000000Z                12.383333333333333
+              worker01  2025-08-22T05:51:00.000000000Z                14.622222222222222
+              worker01  2025-08-22T05:54:00.000000000Z                33.516666666666666
+              worker01  2025-08-22T05:57:00.000000000Z                 37.83888888888889
+              worker01  2025-08-22T06:00:00.000000000Z                 36.67777777777778
+              worker01  2025-08-22T06:03:00.000000000Z                             60.25
+              worker01  2025-08-22T06:06:00.000000000Z                 77.32222222222222
+              worker01  2025-08-22T06:09:00.000000000Z                 86.27222222222223
+              worker01  2025-08-22T06:12:00.000000000Z                133.85555555555555
+              worker01  2025-08-22T06:15:00.000000000Z                128.23888888888888
+              worker01  2025-08-22T06:18:00.000000000Z                125.78333333333333
+              worker01  2025-08-22T06:21:00.000000000Z                117.36666666666666
+              worker01  2025-08-22T06:24:00.000000000Z                111.37222222222222
+              worker01  2025-08-22T06:27:00.000000000Z                118.31111111111112
+              worker01  2025-08-22T06:30:00.000000000Z                 90.85555555555555
+              worker01  2025-08-22T06:33:00.000000000Z                 71.49444444444444
+              worker01  2025-08-22T06:36:00.000000000Z                              99.7
+              worker01  2025-08-22T06:39:00.000000000Z                             146.7
+              worker01  2025-08-22T06:42:00.000000000Z                116.52222222222223
+              worker01  2025-08-22T06:45:00.000000000Z                            166.55
+              worker01  2025-08-22T06:48:00.000000000Z                174.50555555555556
+              worker01  2025-08-22T06:51:00.000000000Z                179.68333333333334
+              worker01  2025-08-22T06:54:00.000000000Z                 69.74444444444444
+              worker01  2025-08-22T06:57:00.000000000Z                             58.05
+              worker01  2025-08-22T07:00:00.000000000Z                 65.89444444444445
+              worker01  2025-08-22T07:03:00.000000000Z                35.455555555555556
+              worker01  2025-08-22T07:06:00.000000000Z                14.672222222222222
+              worker01  2025-08-22T07:09:00.000000000Z                 17.18888888888889
+              worker01  2025-08-22T07:12:00.000000000Z                15.261111111111111
+              worker01  2025-08-22T07:15:00.000000000Z                              16.6
+              worker01  2025-08-22T07:15:51.926901280Z                 19.58522413105564
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker02  2025-08-22T06:12:00.000000000Z                 7.972222222222222
+              worker02  2025-08-22T06:15:00.000000000Z                13.272222222222222
+              worker02  2025-08-22T06:18:00.000000000Z                18.288888888888888
+              worker02  2025-08-22T06:21:00.000000000Z                16.055555555555557
+              worker02  2025-08-22T06:24:00.000000000Z                18.022222222222222
+              worker02  2025-08-22T06:27:00.000000000Z                14.544444444444444
+              worker02  2025-08-22T06:30:00.000000000Z                             12.45
+              worker02  2025-08-22T06:33:00.000000000Z                12.583333333333334
+              worker02  2025-08-22T06:36:00.000000000Z                 12.86111111111111
+              worker02  2025-08-22T06:39:00.000000000Z                11.072222222222223
+              worker02  2025-08-22T06:42:00.000000000Z                10.283333333333333
+              worker02  2025-08-22T06:45:00.000000000Z                 9.822222222222223
+              worker02  2025-08-22T06:48:00.000000000Z                10.072222222222223
+              worker02  2025-08-22T06:51:00.000000000Z                7.7444444444444445
+              worker02  2025-08-22T06:54:00.000000000Z                11.377777777777778
+              worker02  2025-08-22T06:57:00.000000000Z                 7.461111111111111
+              worker02  2025-08-22T07:00:00.000000000Z                 9.294444444444444
+              worker02  2025-08-22T07:03:00.000000000Z                11.555555555555555
+              worker02  2025-08-22T07:06:00.000000000Z                 5.883333333333334
+              worker02  2025-08-22T07:09:00.000000000Z                             11.95
+              worker02  2025-08-22T07:12:00.000000000Z                 8.472222222222221
+              worker02  2025-08-22T07:15:00.000000000Z                 9.227777777777778
+              worker02  2025-08-22T07:15:51.926901280Z                11.381383934566257
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker03  2025-08-22T06:18:00.000000000Z                10.705555555555556
+              worker03  2025-08-22T06:21:00.000000000Z                14.572222222222223
+              worker03  2025-08-22T06:24:00.000000000Z                16.122222222222224
+              worker03  2025-08-22T06:27:00.000000000Z                15.455555555555556
+              worker03  2025-08-22T06:30:00.000000000Z                12.272222222222222
+              worker03  2025-08-22T06:33:00.000000000Z                11.905555555555555
+              worker03  2025-08-22T06:36:00.000000000Z                11.772222222222222
+              worker03  2025-08-22T06:39:00.000000000Z                15.116666666666667
+              worker03  2025-08-22T06:42:00.000000000Z                11.405555555555555
+              worker03  2025-08-22T06:45:00.000000000Z                 10.36111111111111
+              worker03  2025-08-22T06:48:00.000000000Z                11.333333333333334
+              worker03  2025-08-22T06:51:00.000000000Z                 7.438888888888889
+              worker03  2025-08-22T06:54:00.000000000Z                 6.788888888888889
+              worker03  2025-08-22T06:57:00.000000000Z                 7.394444444444445
+              worker03  2025-08-22T07:00:00.000000000Z                12.838888888888889
+              worker03  2025-08-22T07:03:00.000000000Z                 7.555555555555555
+              worker03  2025-08-22T07:06:00.000000000Z                 9.255555555555556
+              worker03  2025-08-22T07:09:00.000000000Z                 5.816666666666666
+              worker03  2025-08-22T07:12:00.000000000Z                 7.394444444444445
+              worker03  2025-08-22T07:15:00.000000000Z                11.261111111111111
+              worker03  2025-08-22T07:15:51.926901280Z                14.790021762685084
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker04  2025-08-22T05:42:00.000000000Z                0.9444444444444444
+              worker04  2025-08-22T05:45:00.000000000Z              0.011111111111111112
+              worker04  2025-08-22T05:48:00.000000000Z               0.05555555555555555
+              worker04  2025-08-22T05:51:00.000000000Z                1.1611111111111112
+              worker04  2025-08-22T05:54:00.000000000Z                               4.4
+              worker04  2025-08-22T05:57:00.000000000Z               0.06111111111111111
+              worker04  2025-08-22T06:00:00.000000000Z                21.427777777777777
+              worker04  2025-08-22T06:03:00.000000000Z                              49.5
+              worker04  2025-08-22T06:06:00.000000000Z                51.111111111111114
+              worker04  2025-08-22T06:09:00.000000000Z                             57.25
+              worker04  2025-08-22T06:12:00.000000000Z                57.888888888888886
+              worker04  2025-08-22T06:15:00.000000000Z                59.583333333333336
+              worker04  2025-08-22T06:18:00.000000000Z                101.12777777777778
+              worker04  2025-08-22T06:21:00.000000000Z                249.01111111111112
+              worker04  2025-08-22T06:24:00.000000000Z                347.21666666666664
+              worker04  2025-08-22T06:27:00.000000000Z                460.18333333333334
+              worker04  2025-08-22T06:30:00.000000000Z                 436.8333333333333
+              worker04  2025-08-22T06:33:00.000000000Z                            437.75
+              worker04  2025-08-22T06:36:00.000000000Z                432.23333333333335
+              worker04  2025-08-22T06:39:00.000000000Z                440.93888888888887
+              worker04  2025-08-22T06:42:00.000000000Z                 357.3388888888889
+              worker04  2025-08-22T06:45:00.000000000Z                286.28333333333336
+              worker04  2025-08-22T06:48:00.000000000Z                339.47777777777776
+              worker04  2025-08-22T06:51:00.000000000Z                230.93333333333334
+              worker04  2025-08-22T06:54:00.000000000Z                131.12777777777777
+              worker04  2025-08-22T06:57:00.000000000Z                147.81666666666666
+              worker04  2025-08-22T07:00:00.000000000Z                195.14444444444445
+              worker04  2025-08-22T07:03:00.000000000Z                158.88333333333333
+              worker04  2025-08-22T07:06:00.000000000Z                53.861111111111114
+              worker04  2025-08-22T07:09:00.000000000Z                 74.78333333333333
+              worker04  2025-08-22T07:12:00.000000000Z                 73.16111111111111
+              worker04  2025-08-22T07:15:00.000000000Z                111.91111111111111
+              worker04  2025-08-22T07:15:51.926901280Z                  96.6936188417211
+
+
+
+
+
+
+
+
+
+CHRONOS
+
+
+
+k get pods -n nginx -o wide
+
+NAME                           READY   STATUS    RESTARTS      AGE     IP           NODE       NOMINATED NODE   READINESS GATES
+disk-stress-58bf96578d-2mp55   2/2     Running   0          28m    10.0.1.205   worker01   <none>           <none>
+disk-stress-58bf96578d-49z7f   2/2     Running   0          104m   10.0.1.208   worker01   <none>           <none>
+disk-stress-58bf96578d-5jqfm   2/2     Running   0          18m    10.0.2.199   worker02   <none>           <none>
+disk-stress-58bf96578d-8sgpz   2/2     Running   0          43m    10.0.2.3     worker02   <none>           <none>
+disk-stress-58bf96578d-cdfwq   2/2     Running   0          94m    10.0.3.99    worker03   <none>           <none>
+disk-stress-58bf96578d-ddfbg   2/2     Running   0          69m    10.0.3.163   worker03   <none>           <none>
+disk-stress-58bf96578d-jmx5q   2/2     Running   0          59m    10.0.1.23    worker01   <none>           <none>
+disk-stress-58bf96578d-lldb6   2/2     Running   0          74m    10.0.1.198   worker01   <none>           <none>
+disk-stress-58bf96578d-nm8kn   2/2     Running   0          49m    10.0.1.53    worker01   <none>           <none>
+disk-stress-58bf96578d-p6gpl   2/2     Running   0          54m    10.0.2.89    worker02   <none>           <none>
+disk-stress-58bf96578d-ptx7m   2/2     Running   0          89m    10.0.3.6     worker03   <none>           <none>
+disk-stress-58bf96578d-qk99v   2/2     Running   0          79m    10.0.2.194   worker02   <none>           <none>
+disk-stress-58bf96578d-r7rpv   2/2     Running   0          13m    10.0.1.204   worker01   <none>           <none>
+disk-stress-58bf96578d-r99p5   2/2     Running   0          23m    10.0.3.120   worker03   <none>           <none>
+disk-stress-58bf96578d-s89gm   2/2     Running   0          64m    10.0.2.224   worker02   <none>           <none>
+disk-stress-58bf96578d-t22lf   2/2     Running   0          84m    10.0.3.240   worker03   <none>           <none>
+disk-stress-58bf96578d-t7kwd   2/2     Running   0          38m    10.0.1.250   worker01   <none>           <none>
+disk-stress-58bf96578d-whj4x   2/2     Running   0          112m   10.0.4.53    worker04   <none>           <none>
+disk-stress-58bf96578d-wtd4z   2/2     Running   0          99m    10.0.2.166   worker02   <none>           <none>
+disk-stress-58bf96578d-zz742   2/2     Running   0          33m    10.0.3.134   worker03   <none>           <none>
+
+
+
+
+k top nodes
+NAME       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
+master01   110m         2%       1940Mi          24%
+worker01   59m          1%       2628Mi          33%
+worker02   57m          1%       2793Mi          35%
+worker03   70m          1%       2458Mi          30%
+worker04   68m          1%       1198Mi          30%
+worker05   171m         4%       1095Mi          15%
+
+k top pods -n nginx
+
+NAME                           CPU(cores)   MEMORY(bytes)
+disk-stress-58bf96578d-2mp55   2m           165Mi
+disk-stress-58bf96578d-49z7f   1m           272Mi
+disk-stress-58bf96578d-5jqfm   1m           139Mi
+disk-stress-58bf96578d-8sgpz   1m           256Mi
+disk-stress-58bf96578d-cdfwq   2m           333Mi
+disk-stress-58bf96578d-ddfbg   1m           204Mi
+disk-stress-58bf96578d-jmx5q   1m           286Mi
+disk-stress-58bf96578d-lldb6   2m           269Mi
+disk-stress-58bf96578d-nm8kn   1m           195Mi
+disk-stress-58bf96578d-p6gpl   2m           295Mi
+disk-stress-58bf96578d-ptx7m   2m           348Mi
+disk-stress-58bf96578d-qk99v   1m           312Mi
+disk-stress-58bf96578d-r7rpv   2m           162Mi
+disk-stress-58bf96578d-r99p5   2m           201Mi
+disk-stress-58bf96578d-s89gm   1m           248Mi
+disk-stress-58bf96578d-t22lf   1m           304Mi
+disk-stress-58bf96578d-t7kwd   1m           208Mi
+disk-stress-58bf96578d-whj4x   1m           235Mi
+disk-stress-58bf96578d-wtd4z   1m           230Mi
+disk-stress-58bf96578d-zz742   4m           104Mi
+ k describe nodes master01
+master
+
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests   Limits
+  --------           --------   ------
+  cpu                200m (5%)  100m (2%)
+  memory             60Mi (0%)  100Mi (1%)
+
+
+
+
+
+
+w1
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1850m (46%)      3500m (87%)
+  memory             1760240Ki (21%)  3584M (43%)
+
+w2
+
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1700m (42%)      3100m (77%)
+  memory             1641312Ki (20%)  3206217728 (38%)
+
+
+
+
+
+w3
+  Resource           Requests         Limits
+  --------           --------         ------
+  cpu                1800m (45%)      3100m (77%)
+  memory             1712992Ki (21%)  3305152Ki (40%)
+
+
+w4
+
+  Resource           Requests       Limits
+  --------           --------       ------
+  cpu                360m (9%)      1 (25%)
+  memory             325776Ki (7%)  646217728 (15%)
+
+
+
+
+
+
+
+
+average_write_time_per_node
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker01  2025-08-22T07:48:00.000000000Z                   64.2611111111111
+              worker01  2025-08-22T07:51:00.000000000Z                  62.97222222222222
+              worker01  2025-08-22T07:54:00.000000000Z                                 70
+              worker01  2025-08-22T07:57:00.000000000Z                  63.30555555555556
+              worker01  2025-08-22T08:00:00.000000000Z                              64.55
+              worker01  2025-08-22T08:03:00.000000000Z                  62.21111111111111
+              worker01  2025-08-22T08:06:00.000000000Z                 58.394444444444446
+              worker01  2025-08-22T08:09:00.000000000Z                  65.29444444444445
+              worker01  2025-08-22T08:12:00.000000000Z                 58.422222222222224
+              worker01  2025-08-22T08:15:00.000000000Z                             162.15
+              worker01  2025-08-22T08:18:00.000000000Z                 118.68333333333334
+              worker01  2025-08-22T08:21:00.000000000Z                             114.85
+              worker01  2025-08-22T08:24:00.000000000Z                 119.60555555555555
+              worker01  2025-08-22T08:27:00.000000000Z                 113.78888888888889
+              worker01  2025-08-22T08:30:00.000000000Z                 208.98888888888888
+              worker01  2025-08-22T08:33:00.000000000Z                 195.36111111111111
+              worker01  2025-08-22T08:36:00.000000000Z                  149.7277777777778
+              worker01  2025-08-22T08:39:00.000000000Z                 214.47222222222223
+              worker01  2025-08-22T08:42:00.000000000Z                  229.9388888888889
+              worker01  2025-08-22T08:45:00.000000000Z                              202.7
+              worker01  2025-08-22T08:48:00.000000000Z                 230.67777777777778
+              worker01  2025-08-22T08:51:00.000000000Z                 128.17777777777778
+              worker01  2025-08-22T08:54:00.000000000Z                               52.4
+              worker01  2025-08-22T08:57:00.000000000Z                  4.011111111111111
+              worker01  2025-08-22T09:00:00.000000000Z                  75.28333333333333
+              worker01  2025-08-22T09:03:00.000000000Z                  37.53888888888889
+              worker01  2025-08-22T09:06:00.000000000Z                  50.07222222222222
+              worker01  2025-08-22T09:09:00.000000000Z                  70.16111111111111
+              worker01  2025-08-22T09:12:00.000000000Z                  83.33333333333333
+              worker01  2025-08-22T09:15:00.000000000Z                 154.25555555555556
+              worker01  2025-08-22T09:16:31.685039008Z                 129.61765767436776
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker02  2025-08-22T07:51:00.000000000Z                 59.977777777777774
+              worker02  2025-08-22T07:54:00.000000000Z                  66.28333333333333
+              worker02  2025-08-22T07:57:00.000000000Z                              60.15
+              worker02  2025-08-22T08:00:00.000000000Z                 61.577777777777776
+              worker02  2025-08-22T08:03:00.000000000Z                  66.19444444444444
+              worker02  2025-08-22T08:06:00.000000000Z                  60.53333333333333
+              worker02  2025-08-22T08:09:00.000000000Z                 156.48333333333332
+              worker02  2025-08-22T08:12:00.000000000Z                 145.45555555555555
+              worker02  2025-08-22T08:15:00.000000000Z                 137.83333333333334
+              worker02  2025-08-22T08:18:00.000000000Z                 151.52777777777777
+              worker02  2025-08-22T08:21:00.000000000Z                 125.17222222222222
+              worker02  2025-08-22T08:24:00.000000000Z                 277.52222222222224
+              worker02  2025-08-22T08:27:00.000000000Z                  239.2888888888889
+              worker02  2025-08-22T08:30:00.000000000Z                  199.8111111111111
+              worker02  2025-08-22T08:33:00.000000000Z                 220.23333333333332
+              worker02  2025-08-22T08:36:00.000000000Z                  334.8277777777778
+              worker02  2025-08-22T08:39:00.000000000Z                  364.4166666666667
+              worker02  2025-08-22T08:42:00.000000000Z                 298.94444444444446
+              worker02  2025-08-22T08:45:00.000000000Z                 352.60555555555555
+              worker02  2025-08-22T08:48:00.000000000Z                  351.0722222222222
+              worker02  2025-08-22T08:51:00.000000000Z                 152.32222222222222
+              worker02  2025-08-22T08:54:00.000000000Z                  56.48888888888889
+              worker02  2025-08-22T08:57:00.000000000Z                 3.8833333333333333
+              worker02  2025-08-22T09:00:00.000000000Z                 18.955555555555556
+              worker02  2025-08-22T09:03:00.000000000Z                 30.394444444444446
+              worker02  2025-08-22T09:06:00.000000000Z                               40.3
+              worker02  2025-08-22T09:09:00.000000000Z                 102.22222222222223
+              worker02  2025-08-22T09:12:00.000000000Z                  66.58888888888889
+              worker02  2025-08-22T09:15:00.000000000Z                  78.59444444444445
+              worker02  2025-08-22T09:16:31.685039008Z                  91.93430129057943
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker03  2025-08-22T07:57:00.000000000Z                   64.5111111111111
+              worker03  2025-08-22T08:00:00.000000000Z                             187.15
+              worker03  2025-08-22T08:03:00.000000000Z                 124.33333333333333
+              worker03  2025-08-22T08:06:00.000000000Z                 248.17222222222222
+              worker03  2025-08-22T08:09:00.000000000Z                 196.88888888888889
+              worker03  2025-08-22T08:12:00.000000000Z                 167.38888888888889
+              worker03  2025-08-22T08:15:00.000000000Z                 165.96666666666667
+              worker03  2025-08-22T08:18:00.000000000Z                 208.44444444444446
+              worker03  2025-08-22T08:21:00.000000000Z                             267.85
+              worker03  2025-08-22T08:24:00.000000000Z                             215.35
+              worker03  2025-08-22T08:27:00.000000000Z                 230.45555555555555
+              worker03  2025-08-22T08:30:00.000000000Z                             265.65
+              worker03  2025-08-22T08:33:00.000000000Z                             287.55
+              worker03  2025-08-22T08:36:00.000000000Z                  205.7888888888889
+              worker03  2025-08-22T08:39:00.000000000Z                  247.2277777777778
+              worker03  2025-08-22T08:42:00.000000000Z                 214.07222222222222
+              worker03  2025-08-22T08:45:00.000000000Z                 182.80555555555554
+              worker03  2025-08-22T08:48:00.000000000Z                  209.4777777777778
+              worker03  2025-08-22T08:51:00.000000000Z                  72.44444444444444
+              worker03  2025-08-22T08:54:00.000000000Z                  93.56111111111112
+              worker03  2025-08-22T08:57:00.000000000Z                  4.938888888888889
+              worker03  2025-08-22T09:00:00.000000000Z                  20.81111111111111
+              worker03  2025-08-22T09:03:00.000000000Z                              28.05
+              worker03  2025-08-22T09:06:00.000000000Z                              85.05
+              worker03  2025-08-22T09:09:00.000000000Z                  55.53333333333333
+              worker03  2025-08-22T09:12:00.000000000Z                 63.105555555555554
+              worker03  2025-08-22T09:15:00.000000000Z                  75.20555555555555
+              worker03  2025-08-22T09:16:31.685039008Z                  74.69048466459698
+Table: keys: [node]
+           node:string                      _time:time  average_write_time_per_node:float
+----------------------  ------------------------------  ---------------------------------
+              worker04  2025-08-22T07:42:00.000000000Z                  64.07777777777778
+              worker04  2025-08-22T07:45:00.000000000Z                 113.75555555555556
+              worker04  2025-08-22T07:48:00.000000000Z                  77.23333333333333
+              worker04  2025-08-22T07:51:00.000000000Z                  84.03333333333333
+              worker04  2025-08-22T07:54:00.000000000Z                  70.74444444444444
+              worker04  2025-08-22T07:57:00.000000000Z                  67.79444444444445
+              worker04  2025-08-22T08:00:00.000000000Z                  79.07222222222222
+              worker04  2025-08-22T08:03:00.000000000Z                  76.72222222222223
+              worker04  2025-08-22T08:06:00.000000000Z                  71.63333333333334
+              worker04  2025-08-22T08:09:00.000000000Z                  69.80555555555556
+              worker04  2025-08-22T08:12:00.000000000Z                 147.83333333333334
+              worker04  2025-08-22T08:15:00.000000000Z                 229.12222222222223
+              worker04  2025-08-22T08:18:00.000000000Z                             247.85
+              worker04  2025-08-22T08:21:00.000000000Z                             214.35
+              worker04  2025-08-22T08:24:00.000000000Z                 259.03333333333336
+              worker04  2025-08-22T08:27:00.000000000Z                 232.05555555555554
+              worker04  2025-08-22T08:30:00.000000000Z                                200
+              worker04  2025-08-22T08:33:00.000000000Z                 226.50555555555556
+              worker04  2025-08-22T08:36:00.000000000Z                              182.5
+              worker04  2025-08-22T08:39:00.000000000Z                 248.11111111111111
+              worker04  2025-08-22T08:42:00.000000000Z                             148.25
+              worker04  2025-08-22T08:45:00.000000000Z                             231.25
+              worker04  2025-08-22T08:48:00.000000000Z                 223.49444444444444
+              worker04  2025-08-22T08:51:00.000000000Z                 50.672222222222224
+              worker04  2025-08-22T08:54:00.000000000Z                 103.01666666666667
+              worker04  2025-08-22T08:57:00.000000000Z                  16.67222222222222
+              worker04  2025-08-22T09:00:00.000000000Z                                  6
+              worker04  2025-08-22T09:03:00.000000000Z                  8.055555555555555
+              worker04  2025-08-22T09:06:00.000000000Z                  18.22222222222222
+              worker04  2025-08-22T09:09:00.000000000Z                 10.411111111111111
+              worker04  2025-08-22T09:12:00.000000000Z                  17.72222222222222
+              worker04  2025-08-22T09:15:00.000000000Z                 15.405555555555555
+              worker04  2025-08-22T09:16:31.685039008Z                 29.023273903693422
+
+
+
+average_read_time_per_node
+
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker01  2025-08-22T07:48:00.000000000Z                              10.5
+              worker01  2025-08-22T07:51:00.000000000Z                             14.45
+              worker01  2025-08-22T07:54:00.000000000Z                15.205555555555556
+              worker01  2025-08-22T07:57:00.000000000Z                15.055555555555555
+              worker01  2025-08-22T08:00:00.000000000Z                16.616666666666667
+              worker01  2025-08-22T08:03:00.000000000Z                17.216666666666665
+              worker01  2025-08-22T08:06:00.000000000Z                16.766666666666666
+              worker01  2025-08-22T08:09:00.000000000Z                 17.17222222222222
+              worker01  2025-08-22T08:12:00.000000000Z                19.044444444444444
+              worker01  2025-08-22T08:15:00.000000000Z                22.788888888888888
+              worker01  2025-08-22T08:18:00.000000000Z                30.372222222222224
+              worker01  2025-08-22T08:21:00.000000000Z                37.483333333333334
+              worker01  2025-08-22T08:24:00.000000000Z                37.083333333333336
+              worker01  2025-08-22T08:27:00.000000000Z                 37.36666666666667
+              worker01  2025-08-22T08:30:00.000000000Z                 46.59444444444444
+              worker01  2025-08-22T08:33:00.000000000Z                 64.79444444444445
+              worker01  2025-08-22T08:36:00.000000000Z                 49.41111111111111
+              worker01  2025-08-22T08:39:00.000000000Z                57.166666666666664
+              worker01  2025-08-22T08:42:00.000000000Z                 74.69444444444444
+              worker01  2025-08-22T08:45:00.000000000Z                 76.42777777777778
+              worker01  2025-08-22T08:48:00.000000000Z                 93.22222222222223
+              worker01  2025-08-22T08:51:00.000000000Z                20.694444444444443
+              worker01  2025-08-22T08:54:00.000000000Z                 10.38888888888889
+              worker01  2025-08-22T08:57:00.000000000Z                0.8388888888888889
+              worker01  2025-08-22T09:00:00.000000000Z                 3.238888888888889
+              worker01  2025-08-22T09:03:00.000000000Z                 5.472222222222222
+              worker01  2025-08-22T09:06:00.000000000Z                 6.833333333333333
+              worker01  2025-08-22T09:09:00.000000000Z                11.055555555555555
+              worker01  2025-08-22T09:12:00.000000000Z                12.566666666666666
+              worker01  2025-08-22T09:15:00.000000000Z                20.538888888888888
+              worker01  2025-08-22T09:16:00.011434509Z                 21.91249069046646
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker02  2025-08-22T07:51:00.000000000Z                              2.75
+              worker02  2025-08-22T07:54:00.000000000Z                13.116666666666667
+              worker02  2025-08-22T07:57:00.000000000Z                13.761111111111111
+              worker02  2025-08-22T08:00:00.000000000Z                16.255555555555556
+              worker02  2025-08-22T08:03:00.000000000Z                17.533333333333335
+              worker02  2025-08-22T08:06:00.000000000Z                15.077777777777778
+              worker02  2025-08-22T08:09:00.000000000Z                26.677777777777777
+              worker02  2025-08-22T08:12:00.000000000Z                30.333333333333332
+              worker02  2025-08-22T08:15:00.000000000Z                              43.1
+              worker02  2025-08-22T08:18:00.000000000Z                45.483333333333334
+              worker02  2025-08-22T08:21:00.000000000Z                46.483333333333334
+              worker02  2025-08-22T08:24:00.000000000Z                              69.7
+              worker02  2025-08-22T08:27:00.000000000Z                 66.02222222222223
+              worker02  2025-08-22T08:30:00.000000000Z                 84.47222222222223
+              worker02  2025-08-22T08:33:00.000000000Z                107.61666666666666
+              worker02  2025-08-22T08:36:00.000000000Z                122.51666666666667
+              worker02  2025-08-22T08:39:00.000000000Z                             234.5
+              worker02  2025-08-22T08:42:00.000000000Z                 124.5111111111111
+              worker02  2025-08-22T08:45:00.000000000Z                157.87777777777777
+              worker02  2025-08-22T08:48:00.000000000Z                               167
+              worker02  2025-08-22T08:51:00.000000000Z                 62.07222222222222
+              worker02  2025-08-22T08:54:00.000000000Z                13.011111111111111
+              worker02  2025-08-22T08:57:00.000000000Z                1.4333333333333333
+              worker02  2025-08-22T09:00:00.000000000Z                 3.827777777777778
+              worker02  2025-08-22T09:03:00.000000000Z                 6.611111111111111
+              worker02  2025-08-22T09:06:00.000000000Z                  8.71111111111111
+              worker02  2025-08-22T09:09:00.000000000Z                19.155555555555555
+              worker02  2025-08-22T09:12:00.000000000Z                13.072222222222223
+              worker02  2025-08-22T09:15:00.000000000Z                18.927777777777777
+              worker02  2025-08-22T09:16:00.011434509Z                21.462576432943575
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker03  2025-08-22T07:57:00.000000000Z                 6.711111111111111
+              worker03  2025-08-22T08:00:00.000000000Z                25.405555555555555
+              worker03  2025-08-22T08:03:00.000000000Z                30.133333333333333
+              worker03  2025-08-22T08:06:00.000000000Z                 53.56111111111111
+              worker03  2025-08-22T08:09:00.000000000Z                              66.6
+              worker03  2025-08-22T08:12:00.000000000Z                 61.92777777777778
+              worker03  2025-08-22T08:15:00.000000000Z                 69.06666666666666
+              worker03  2025-08-22T08:18:00.000000000Z                 90.68888888888888
+              worker03  2025-08-22T08:21:00.000000000Z                 85.24444444444444
+              worker03  2025-08-22T08:24:00.000000000Z                 85.50555555555556
+              worker03  2025-08-22T08:27:00.000000000Z                 99.41111111111111
+              worker03  2025-08-22T08:30:00.000000000Z                108.43333333333334
+              worker03  2025-08-22T08:33:00.000000000Z                125.13888888888889
+              worker03  2025-08-22T08:36:00.000000000Z                 97.73333333333333
+              worker03  2025-08-22T08:39:00.000000000Z                116.07222222222222
+              worker03  2025-08-22T08:42:00.000000000Z                 86.72222222222223
+              worker03  2025-08-22T08:45:00.000000000Z                 76.40555555555555
+              worker03  2025-08-22T08:48:00.000000000Z                 88.17777777777778
+              worker03  2025-08-22T08:51:00.000000000Z                                33
+              worker03  2025-08-22T08:54:00.000000000Z                22.627777777777776
+              worker03  2025-08-22T08:57:00.000000000Z                1.8277777777777777
+              worker03  2025-08-22T09:00:00.000000000Z                 4.427777777777778
+              worker03  2025-08-22T09:03:00.000000000Z                 7.622222222222222
+              worker03  2025-08-22T09:06:00.000000000Z                11.916666666666666
+              worker03  2025-08-22T09:09:00.000000000Z                14.133333333333333
+              worker03  2025-08-22T09:12:00.000000000Z                16.961111111111112
+              worker03  2025-08-22T09:15:00.000000000Z                22.505555555555556
+              worker03  2025-08-22T09:16:00.011434509Z                21.779182762311528
+Table: keys: [node]
+           node:string                      _time:time  average_read_time_per_node:float
+----------------------  ------------------------------  --------------------------------
+              worker04  2025-08-22T07:42:00.000000000Z                 8.194444444444445
+              worker04  2025-08-22T07:45:00.000000000Z                27.711111111111112
+              worker04  2025-08-22T07:48:00.000000000Z                19.788888888888888
+              worker04  2025-08-22T07:51:00.000000000Z                26.294444444444444
+              worker04  2025-08-22T07:54:00.000000000Z                19.905555555555555
+              worker04  2025-08-22T07:57:00.000000000Z                             19.95
+              worker04  2025-08-22T08:00:00.000000000Z                20.244444444444444
+              worker04  2025-08-22T08:03:00.000000000Z                22.094444444444445
+              worker04  2025-08-22T08:06:00.000000000Z                20.294444444444444
+              worker04  2025-08-22T08:09:00.000000000Z                21.605555555555554
+              worker04  2025-08-22T08:12:00.000000000Z                             26.95
+              worker04  2025-08-22T08:15:00.000000000Z                 40.68333333333333
+              worker04  2025-08-22T08:18:00.000000000Z                 41.28888888888889
+              worker04  2025-08-22T08:21:00.000000000Z                35.272222222222226
+              worker04  2025-08-22T08:24:00.000000000Z                 43.78888888888889
+              worker04  2025-08-22T08:27:00.000000000Z                 43.68333333333333
+              worker04  2025-08-22T08:30:00.000000000Z                              34.6
+              worker04  2025-08-22T08:33:00.000000000Z                37.144444444444446
+              worker04  2025-08-22T08:36:00.000000000Z                38.361111111111114
+              worker04  2025-08-22T08:39:00.000000000Z                              43.3
+              worker04  2025-08-22T08:42:00.000000000Z                26.005555555555556
+              worker04  2025-08-22T08:45:00.000000000Z                             42.65
+              worker04  2025-08-22T08:48:00.000000000Z                 48.92777777777778
+              worker04  2025-08-22T08:51:00.000000000Z                12.755555555555556
+              worker04  2025-08-22T08:54:00.000000000Z                 9.227777777777778
+              worker04  2025-08-22T08:57:00.000000000Z                              0.45
+              worker04  2025-08-22T09:00:00.000000000Z                1.5611111111111111
+              worker04  2025-08-22T09:03:00.000000000Z                1.6611111111111112
+              worker04  2025-08-22T09:06:00.000000000Z                 4.216666666666667
+              worker04  2025-08-22T09:09:00.000000000Z                2.7944444444444443
+              worker04  2025-08-22T09:12:00.000000000Z                 6.138888888888889
+              worker04  2025-08-22T09:15:00.000000000Z                              3.95
+              worker04  2025-08-22T09:16:00.011434509Z                 5.782231383720046
+
+

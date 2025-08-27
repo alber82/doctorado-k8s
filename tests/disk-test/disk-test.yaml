@@ -1,0 +1,141 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-config-disk
+  labels:
+    app: telegraf
+data:
+  telegraf.conf: |
+    [agent]
+      interval = "10s"
+      round_interval = true
+      metric_batch_size = 10000
+      metric_buffer_limit = 200000
+      collection_jitter = "0s"
+      flush_interval = "10s"
+      flush_jitter = "0s"
+      precision = ""
+      debug = true
+      quiet = false
+      logfile = ""
+      hostname = "$HOSTNAME"
+      omit_hostname = false
+
+    [[processors.enum]]
+      [[processors.enum.mapping]]
+        field = "status"
+        dest = "status_code"
+        [processors.enum.mapping.value_mappings]
+          healthy = 1
+          problem = 2
+          critical = 3
+
+    [[outputs.influxdb_v2]]
+      urls = ["http://influxdb-influxdb2.monitoring:80"]
+      token = "klsjdaioqwehrqoikdnmxcq"
+      organization = "uclm"
+      bucket = "doctorado"
+
+    [[inputs.diskio]]
+
+      ## Collect disk usage stats
+      # fieldpass = ["reads", "writes", "read_bytes", "write_bytes", "io_time"]
+
+      ## Interval in which to collect stats
+      interval = "10s"  # Puedes ajustarlo según tus necesidades
+      devices = ["/dev/sda1","/dev/sda2","/dev/sda3"]  # Incluye todas las particiones relevantes
+      [inputs.diskio.tags]
+        instance = "$HOSTNAME"
+        node = "$KUBERNETES_NODE_NAME"
+        pod = "$KUBERNETES_POD_NAME"
+        node_ip  = "$NODE_IP"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: disk-stress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: disk-stress
+  template:
+    metadata:
+      labels:
+        app: disk-stress
+    spec:
+      #schedulerName: randomscheduler
+      schedulerName: influxdbmetricsschedulerdisk  
+      containers:
+        - name: disk-stress
+          image: 192.168.1.229:5000/doctorado/disk-test:0.0.0
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256M
+            limits:
+              cpu: 500m
+              memory: 512M
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - mountPath: /data
+              name: disk-volume
+          securityContext:
+            privileged: true  # Habilitar el modo privilegiado
+          env:
+            - name: KUBERNETES_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: KUBERNETES_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+        - name: telegraf
+          image: docker.io/library/telegraf:1.32.1-alpine
+          env:
+            - name: KUBERNETES_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: KUBERNETES_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP                    
+          volumeMounts:
+            - name: telegraf-config-volume
+              mountPath: /etc/telegraf/telegraf.conf
+              subPath: telegraf.conf
+            - name: dev
+              mountPath: /dev
+          securityContext:
+            privileged: true  # Habilitar el modo privilegiado
+      volumes:  # <-- Debe estar dentro de 'spec', NO dentro de 'containers'
+        - name: disk-volume
+          emptyDir: {}   # Esto usa el disco del nodo
+        - name: telegraf-config-volume
+          configMap:
+            name: telegraf-config-disk
+        - name: dev
+          hostPath:
+            path: /dev
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: disk-stress
+spec:
+  selector:
+    app: disk-stress
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP

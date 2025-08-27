@@ -37,22 +37,24 @@ spec:
     readinessProbe:
       initialDelaySeconds: 5
       periodSeconds: 10
-#   constraints:
-#     affinity:
-#       nodeAffinity:
-#         requiredDuringSchedulingIgnoredDuringExecution:
-#           nodeSelectorTerms:
-#             - matchExpressions:
-#                 - key: kubernetes.io/hostname
-#                   operator: In
-#                   values:
-#                     - worker04
+  constraints:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - master01
   updateStrategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 45%
       maxUnavailable: 35%
-#   filterNodes:
-#   - master01
-#   - worker04
-#   - worker05
+  filterNodes:
+  - master01
+  - worker05    
+  - worker06
+  - worker07
+  - worker08  

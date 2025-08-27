@@ -1,0 +1,45 @@
+import "math"
+
+First = from(bucket: "doctorado")                                                            
+  |> range(start: -10m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: ["instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -10m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "prometheus_remote_write")
+  |> filter(fn: (r) => r["_field"] == "node_network_receive_bytes_total")
+  |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: [ "instance"], mode:"by")
+  |> keep(columns: ["instance", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))
+
+
+cat <<EOF | kubectl -n operator apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod02
+  labels:
+    name: pod02
+spec:
+  schedulerName: influxdbmetricsscheduler
+  containers:
+  - name: pod01
+    image: mqlhaha/pause:3.2
+    resources:
+      requests:
+        cpu: 300m
+        memory: 256M
+      limits:
+        cpu: 300m
+        memory: 256M
+EOF
