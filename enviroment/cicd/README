@@ -1,3 +1,83 @@
+K3s cluster bootstrap with Raspberry Pi and automated deployment
+
+This environment allows you to deploy a K3s cluster from scratch with Raspberry Pi (Ubuntu Server 24.04), using Cilium as CNI and observability tools such as InfluxDB, Telegraf, and Prometheus.
+
+Prerequisites
+
+Local network with SSH access between nodes
+
+Raspberries with clean Ubuntu 22.04
+
+Access from the bootstrap node (e.g. 192.168.1.229) to all nodes
+
+cluster.conf correctly defined with IPs and names
+
+Nodes
+
+bootstrap (deployment control) – 192.168.1.229
+
+master01 – 192.168.1.220
+
+worker01 to worker05 – 192.168.1.221–225
+
+Execution order
+
+01-generate-keys.sh
+
+Generates SSH key for each node
+
+Exchanges them
+
+02-update-hosts.sk
+
+Updates /etc/hosts
+
+03-install-k3s-master.sh
+
+Installs the K3s server on master01
+
+Saves the node token needed to join the workers
+
+04-install-k3s-workers.sh
+
+Installs the K3s agents on worker01–05 and joins them to the cluster
+
+05-install-cilium.sh
+
+Installs Cilium as CNI
+
+06-deploy-charts.sh
+
+Deploys:
+
+InfluxDB v2
+
+Telegraf
+
+Prometheus Stack
+
+K6 Operator
+
+Considerations
+
+Ensure that the nodes are fully updated (apt update && apt upgrade -y)
+
+You can adapt the charts and values within charts/ according to your environment
+
+If you use cloud-init, ensure that the nodes have their hostname and network configured
+
+Quick recovery
+
+If a node fails:
+
+Reinstall Ubuntu
+
+Re-run from 01-generate-keys.sh to restore access
+
+Reinstall K3s using 04-install-k
+
+---
+
 Bootstrap de clúster K3s con Raspberry Pi y despliegue automatizado
 
 Este entorno permite desplegar desde cero un clúster K3s con Raspberry Pi (Ubuntu Server 24.04), usando Cilium como CNI y herramientas de observabilidad como InfluxDB, Telegraf y Prometheus.
