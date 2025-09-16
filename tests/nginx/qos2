@@ -1,3 +1,229 @@
+NAME       CPU(cores)   CPU(%)      MEMORY(bytes)   MEMORY(%)
+master01   100m         2%          1745Mi          21%
+worker01   39m          0%          1036Mi          13%
+worker02   40m          1%          1055Mi          13%
+worker03   42m          1%          1054Mi          13%
+worker04   54m          1%          1247Mi          31%
+worker05   180m         5%          1007Mi          13%
+
+doctorado@bootstrap:~$ k top pods --all-namespaces
+NAMESPACE            NAME                                              CPU(cores)   MEMORY(bytes)
+k6-operator-system   k6-operator-controller-manager-6c7bb4695f-mx5lh   1m           79Mi
+kube-system          cilium-7tx5r                                      10m          314Mi
+kube-system          cilium-9lq9z                                      8m           313Mi
+kube-system          cilium-envoy-7bwcj                                2m           56Mi
+kube-system          cilium-envoy-7krf7                                3m           56Mi
+kube-system          cilium-envoy-fvw4c                                8m           56Mi
+kube-system          cilium-envoy-n822h                                2m           56Mi
+kube-system          cilium-envoy-s9xd7                                3m           56Mi
+kube-system          cilium-envoy-tb2xr                                2m           56Mi
+kube-system          cilium-envoy-tn7fs                                2m           56Mi
+kube-system          cilium-envoy-xfz27                                2m           56Mi
+kube-system          cilium-gfxnt                                      44m          325Mi
+kube-system          cilium-gmshs                                      8m           309Mi
+kube-system          cilium-operator-75bb688c6b-xjs9x                  3m           114Mi
+kube-system          cilium-qhq87                                      11m          322Mi
+kube-system          cilium-vs6sq                                      13m          320Mi
+kube-system          cilium-wl9dk                                      9m           313Mi
+kube-system          cilium-xglql                                      7m           314Mi
+kube-system          coredns-7b98449c4-lf2v8                           3m           56Mi
+kube-system          local-path-provisioner-7c888b68b6-sjzck           1m           35Mi
+kube-system          metrics-server-5f9b5b4bdb-7lnlc                   22m          68Mi
+monitoring           influxdb-influxdb2-0                              2m           185Mi
+monitoring           node-exporter-prometheus-node-exporter-27ttl      11m          21Mi
+monitoring           node-exporter-prometheus-node-exporter-75p2p      12m          21Mi
+monitoring           node-exporter-prometheus-node-exporter-8jg6m      15m          20Mi
+monitoring           node-exporter-prometheus-node-exporter-bqndw      8m           21Mi
+monitoring           node-exporter-prometheus-node-exporter-fhfm6      11m          21Mi
+monitoring           node-exporter-prometheus-node-exporter-kdp6s      15m          21Mi
+monitoring           node-exporter-prometheus-node-exporter-kwwbg      11m          21Mi
+monitoring           node-exporter-prometheus-node-exporter-z5hb9      14m          21Mi
+monitoring           telegraf-565dd98cdc-mg582                         2m           72Mi
+operator-system      operator-controller-manager-6c5b4c5d6b-cvcxd      2m           51Mi
+scheduling           influxdbmetricsschedulerdisk-67dc4f78c8-sh7dr     1m           42Mi
+
+k6-operator-system   k6-operator-controller-manager-6c7bb4695f-mx5lh   2/2     Running   144 (13m ago)   310d   10.0.0.221      master01   <none>           <none>
+kube-system          cilium-7tx5r                                      1/1     Running   85 (13m ago)    325d   192.168.1.220   master01   <none>           <none>
+kube-system          cilium-8bhfm                                      1/1     Running   6 (8d ago)      24d    192.168.1.228   worker08   <none>           <none>
+kube-system          cilium-9lq9z                                      1/1     Running   5 (12m ago)     16d    192.168.1.226   worker06   <none>           <none>
+kube-system          cilium-envoy-7bwcj                                1/1     Running   105 (12m ago)   325d   192.168.1.223   worker03   <none>           <none>
+kube-system          cilium-envoy-7krf7                                1/1     Running   17 (14m ago)    60d    192.168.1.224   worker04   <none>           <none>
+kube-system          cilium-envoy-fvw4c                                1/1     Running   21 (12m ago)    62d    192.168.1.225   worker05   <none>           <none>
+kube-system          cilium-envoy-n822h                                1/1     Running   97 (12m ago)    325d   192.168.1.221   worker01   <none>           <none>
+kube-system          cilium-envoy-s9xd7                                1/1     Running   85 (13m ago)    325d   192.168.1.220   master01   <none>           <none>
+kube-system          cilium-envoy-tb2xr                                1/1     Running   5 (12m ago)     16d    192.168.1.226   worker06   <none>           <none>
+kube-system          cilium-envoy-tn7fs                                1/1     Running   103 (14m ago)   325d   192.168.1.222   worker02   <none>           <none>
+kube-system          cilium-envoy-xfz27                                1/1     Running   8 (12m ago)     24d    192.168.1.227   worker07   <none>           <none>
+kube-system          cilium-envoy-zjtqk                                1/1     Running   6 (8d ago)      24d    192.168.1.228   worker08   <none>           <none>
+kube-system          cilium-gfxnt                                      1/1     Running   21 (12m ago)    62d    192.168.1.225   worker05   <none>           <none>
+kube-system          cilium-gmshs                                      1/1     Running   99 (14m ago)    325d   192.168.1.222   worker02   <none>           <none>
+kube-system          cilium-operator-75bb688c6b-xjs9x                  1/1     Running   86 (13m ago)    325d   192.168.1.220   master01   <none>           <none>
+kube-system          cilium-qhq87                                      1/1     Running   96 (12m ago)    325d   192.168.1.223   worker03   <none>           <none>
+kube-system          cilium-vs6sq                                      1/1     Running   17 (14m ago)    60d    192.168.1.224   worker04   <none>           <none>
+kube-system          cilium-wl9dk                                      1/1     Running   94 (12m ago)    325d   192.168.1.221   worker01   <none>           <none>
+kube-system          cilium-xglql                                      1/1     Running   8 (12m ago)     24d    192.168.1.227   worker07   <none>           <none>
+kube-system          coredns-7b98449c4-lf2v8                           1/1     Running   4 (12m ago)     15d    10.0.3.249      worker03   <none>           <none>
+kube-system          local-path-provisioner-7c888b68b6-sjzck           1/1     Running   13 (12m ago)    28d    10.0.1.208      worker01   <none>           <none>
+kube-system          metrics-server-5f9b5b4bdb-7lnlc                   1/1     Running   17 (12m ago)    60d    10.0.5.254      worker05   <none>           <none>
+monitoring           influxdb-influxdb2-0                              1/1     Running   7 (14m ago)     24d    10.0.4.84       worker04   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-27ttl      1/1     Running   18 (12m ago)    60d    192.168.1.223   worker03   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-75p2p      1/1     Running   18 (13m ago)    60d    192.168.1.220   master01   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-8jg6m      1/1     Running   45 (12m ago)    60d    192.168.1.225   worker05   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-bqndw      1/1     Running   19 (14m ago)    28d    192.168.1.222   worker02   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-dmsg7      1/1     Running   6 (8d ago)      24d    192.168.1.228   worker08   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-fhfm6      1/1     Running   5 (12m ago)     16d    192.168.1.226   worker06   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-kdp6s      1/1     Running   17 (12m ago)    60d    192.168.1.221   worker01   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-kwwbg      1/1     Running   16 (14m ago)    60d    192.168.1.224   worker04   <none>           <none>
+monitoring           node-exporter-prometheus-node-exporter-z5hb9      1/1     Running   8 (12m ago)     24d    192.168.1.227   worker07   <none>           <none>
+monitoring           telegraf-565dd98cdc-mg582                         1/1     Running   5 (14m ago)     16d    10.0.4.8        worker04   <none>           <none>
+operator-system      operator-controller-manager-6c5b4c5d6b-cvcxd      1/1     Running   8 (14m ago)     24d    10.0.4.137      worker04   <none>           <none>
+scheduling           influxdbmetricsschedulerdisk-67dc4f78c8-sh7dr     1/1     Running   3 (12m ago)     14d    10.0.3.203      worker03   <none>           <none>
+
+
+
+master
+  Resource           Requests   Limits
+  --------           --------   ------
+  cpu                200m (5%)  100m (2%)
+  memory             60Mi (0%)  100Mi (1%)
+
+w1
+  Resource           Requests   Limits
+  --------           --------   ------
+  cpu                100m (2%)  0 (0%)
+  memory             10Mi (0%)  0 (0%)
+
+
+w2
+
+  Resource           Requests   Limits
+  --------           --------   ------
+  cpu                100m (2%)  0 (0%)
+  memory             10Mi (0%)  0 (0%)
+
+
+w3
+
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                200m (7%)   100m (2%)
+  memory             108Mi (2%)  198Mi (3%)
+
+
+
+w4
+  Resource           Requests   Limits
+  --------           --------   ------
+  cpu                110m (2%)  500m (12%)
+  memory             74Mi (1%)  128Mi (3%)
+
+
+w5
+  Resource           Requests   Limits
+  --------           --------   ------
+  cpu                200m (5%)  0 (0%)
+  memory             80Mi (1%)  0 (0%)
+
+
+
+disco
+
+
+
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.220:9100/metrics                     106521088
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.221:9100/metrics                      18436608
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.222:9100/metrics                       1901056
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.223:9100/metrics                       2351616
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.224:9100/metrics                      31326208
+--
+
+
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.220:9100/metrics                     106177024
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.221:9100/metrics                      18579968
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.222:9100/metrics                       1950208
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.223:9100/metrics                       2507264
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.224:9100/metrics                     380459008
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.225:9100/metrics                      96032768
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.226:9100/metrics                      90311168
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.227:9100/metrics                      90585088
+
+
+
+
+
+red
+
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.220:9100/metrics                       3278238
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.221:9100/metrics                       3705760
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.222:9100/metrics                       1944423
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.223:9100/metrics                       2317768
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.224:9100/metrics                       6827999
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.225:9100/metrics                       3275363
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.226:9100/metrics                       1796743
+Table: keys: [url]
+                        url:string                  _value:float
+----------------------------------  ----------------------------
+https://192.168.1.227:9100/metrics                       1845130
+
+
+
 
 influx query  'import "math"
 First = from(bucket: "doctorado")
@@ -12,6 +238,30 @@ Last = from(bucket: "doctorado")
   |> range(start: -15m, stop: now())
   |> filter(fn: (r) => r["_measurement"] == "node_network_receive_bytes_total")
   |> filter(fn: (r) => r["device"] == "eth0")
+  |> group(columns: [ "url"], mode:"by")
+  |> keep(columns: ["url", "_value"])
+  |> last()
+
+union(tables: [ First, Last])
+|> difference()
+|> map(fn: (r) => ({r with _value: math.abs(x: r._value)}))'
+
+
+
+
+influx query  'import "math"
+First = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "node_disk_written_bytes_total")
+
+  |> group(columns: ["url"], mode:"by")
+  |> keep(columns: ["url", "_value"])
+  |> first()
+
+Last = from(bucket: "doctorado")
+  |> range(start: -15m, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "node_disk_written_bytes_total")
+
   |> group(columns: [ "url"], mode:"by")
   |> keep(columns: ["url", "_value"])
   |> last()
