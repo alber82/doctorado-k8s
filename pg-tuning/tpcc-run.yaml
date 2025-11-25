@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tprocc-run-step-0
+  namespace: benchmark
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: hammerdb
+        bench: tprocc-run
+        step: "0"
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        role: benchmark
+      containers:
+      - name: hammerdb
+        image: tpcorg/hammerdb:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1500m"
+            memory: "1Gi"
+        env:
+        - name: PGHOST
+          value: "pg-cluster-rw.pg.svc.cluster.local"
+        - name: PGPORT
+          value: "5432"
+        - name: TPCC_VUS
+          value: "10"   # nº de VUs en este step de carga
+        - name: TPCC_RAMPUP_MIN
+          value: "2"
+        - name: TPCC_DURATION_MIN
+          value: "10"
+        envFrom:
+        - secretRef:
+            name: pg-bench-secret
+        volumeMounts:
+        - name: scripts
+          mountPath: /work
+        command: ["bash","-lc","hammerdbcli auto /work/pg_tprocc_run.tcl"]
+      volumes:
+      - name: scripts
+        configMap:
+          name: hammerdb-scripts

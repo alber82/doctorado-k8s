@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pg-reset-stats
+  namespace: pg
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: psql
+        image: postgres:18
+        env:
+        - name: PGPASSWORD
+          value: "TU_PASSWORD"
+        command:
+        - bash
+        - -lc
+        - |
+          psql "postgresql://postgres@pg-cluster-rw.pg.svc.cluster.local:5432/postgres" -v ON_ERROR_STOP=1 <<'SQL'
+          SELECT pg_stat_reset();
+          SELECT pg_stat_reset_shared('bgwriter');
+          SELECT pg_stat_reset_shared('wal');
+          SELECT pg_stat_statements_reset();
+          SQL

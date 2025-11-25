@@ -1,0 +1,70 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-cluster
+  namespace: pg
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+            - pg-cluster
+    podAntiAffinityType: preferred
+  
+  enableSuperuserAccess: true
+  instances: 3
+  
+  # Bootstrap con pg_stat_statements
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      encoding: UTF8
+      localeCType: C
+      localeCollate: C
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements SCHEMA public;
+  
+  monitoring:
+    enablePodMonitor: false
+  
+  postgresql:
+    parameters:
+      # SOLO parámetros de pg_stat_statements (NO shared_preload_libraries)
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: "all"
+      pg_stat_statements.track_utility: "on"
+      pg_stat_statements.track_planning: "on"
+      
+      # Tus parámetros de tuning
+      checkpoint_completion_target: "0.9"
+      default_statistics_target: "100"
+      effective_cache_size: "4608MB"
+      effective_io_concurrency: "200"
+      huge_pages: "off"
+      maintenance_work_mem: "384MB"
+      max_connections: "100"
+      max_wal_size: "4GB"
+      min_wal_size: "1GB"
+      random_page_cost: "1.1"
+      shared_buffers: "1536MB"
+      wal_buffers: "16MB"
+      work_mem: "14563kB"
+  
+  resources:
+    limits:
+      cpu: "3500m"
+      memory: "7Gi"
+    requests:
+      cpu: "3000m"
+      memory: "6Gi"
+  
+  storage:
+    size: "50Gi"
+    storageClass: "local-path"
+    resizeInUseVolumes: true

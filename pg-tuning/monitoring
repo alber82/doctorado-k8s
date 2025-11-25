@@ -1,0 +1,55 @@
+# Añadir repo
+helm repo add prometheus-community \
+  https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Valores custom para Pi
+cat <<EOF > prometheus-values.yaml
+prometheus:
+  prometheusSpec:
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+    
+    # Retención de datos
+    retention: 7d
+    
+    # Storage
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+grafana:
+  adminPassword: "admin"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Node affinity
+nodeSelector:
+  role: monitoring
+EOF
+
+# Instalar
+helm install prometheus prometheus-community/kube-prometheus-stack \
+  -n monitoring --create-namespace \
+  -f prometheus-values.yaml
+
+# Verificar
+kubectl get pods -n monitoring
+
+# Port-forward Grafana
+kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80 &
+# Acceder: http://localhost:3000 (admin/admin)

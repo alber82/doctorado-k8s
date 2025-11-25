@@ -1,0 +1,298 @@
+{
+  "title": "PostgreSQL Baseline vs Load",
+  "uid": "pg-baseline-load",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "style": "dark",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d"]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "DS_PROMETHEUS",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0,
+        "label": "Datasource",
+        "refresh": 1
+      },
+      {
+        "name": "server",
+        "label": "Postgres server",
+        "type": "query",
+        "datasource": "$DS_PROMETHEUS",
+        "refresh": 1,
+        "hide": 0,
+        "definition": "label_values(pg_up, server)",
+        "query": "label_values(pg_up, server)",
+        "current": {
+          "text": "pg-cluster-rw:5432",
+          "value": "pg-cluster-rw:5432",
+          "selected": true
+        },
+        "includeAll": false,
+        "multi": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "PostgreSQL Activity",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "TPS (commits/s)",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(pg_stat_database_xact_commit{server=\"$server\"}[5m]))",
+          "legendFormat": "commits/s",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Connections by state",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "custom_pg_connections_state_connections{server=\"$server\"}",
+          "legendFormat": "{{state}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Cache hit ratio (%)",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "100 * custom_pg_cache_hit_ratio_ratio{server=\"$server\"}",
+          "legendFormat": "buffer_cache",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Database size (top 5, bytes)",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "topk(5, custom_pg_database_size_size_bytes{server=\"$server\"})",
+          "legendFormat": "{{datname}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Replication lag (MB)",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decbytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "max(pg_stat_replication_pg_wal_lsn_diff{server=\"$server\"}) / 1024 / 1024",
+          "legendFormat": "lag",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Queries & Slow Queries",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Top queries by total exec time (ms/s)",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 16, "x": 0, "y": 16 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "topk(5, rate(custom_pg_stat_statements_total_exec_time{server=\"$server\"}[5m]))",
+          "legendFormat": "queryid={{queryid}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Slow queries count (custom_pg_slow_queries)",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 16 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(custom_pg_slow_queries_duration_seconds{server=\"$server\"})",
+          "legendFormat": "slow queries",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "type": "row",
+      "title": "System Resources",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Node CPU usage (%)",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 24 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Postgres pods CPU (cores)",
+      "datasource": "$DS_PROMETHEUS",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 24 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{pod=~\"pg-cluster-.*\",container!=\"POD\"}[5m]))",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    }
+  ]
+}
+
