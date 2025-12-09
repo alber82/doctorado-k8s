@@ -21,29 +21,29 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           requests:
-            cpu: "500m"
-            memory: "512Mi"
+            cpu: "2500m"
+            memory: "4Gi"
           limits:
-            cpu: "1500m"
-            memory: "1Gi"
+            cpu: "30000m"
+            memory: "5Gi"
         env:
         - name: PGHOST
           value: "pg-cluster-rw.pg.svc.cluster.local"
         - name: PGPORT
           value: "5432"
         - name: TPCC_VUS
-          value: "10"   # nº de VUs en este step de carga
+          value: "30"   # nº de VUs en este step de carga
         - name: TPCC_RAMPUP_MIN
-          value: "2"
+          value: "3"
         - name: TPCC_DURATION_MIN
-          value: "10"
+          value: "30"
         envFrom:
         - secretRef:
             name: pg-bench-secret
         volumeMounts:
         - name: scripts
           mountPath: /work
-        command: ["bash","-lc","hammerdbcli auto /work/pg_tprocc_run.tcl"]
+        command: ["./hammerdbcli", "auto", "/work/pg_tprocc_run.tcl" ]            
       volumes:
       - name: scripts
         configMap:
