@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tpch-run
+  namespace: benchmark
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        role: benchmark
+      containers:
+        - name: hammerdb-tpch-run
+          image: tpcorg/hammerdb:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PG_HOST
+              value: "pg-cluster-rw.pg.svc.cluster.local"
+            - name: PG_PORT
+              value: "5432"
+            - name: PG_SSLMODE
+              value: "prefer"
+            - name: PG_USER
+              value: "postgres"
+            - name: PG_DB
+              value: "tpch"
+            - name: TPCH_SCALE
+              value: "10"
+            - name: TPCH_TOTAL_QUERYSETS
+              value: "1"
+            - name: TPCH_DOP
+              value: "4"
+            - name: TPCH_VU
+              value: "3"
+          envFrom:
+            - secretRef:
+                name: pg-bench-secret
+          volumeMounts:
+            - name: scripts
+              mountPath: /work
+          command: ["./hammerdbcli", "auto", "/work/pg_tpch_run.tcl"]
+      volumes:
+        - name: scripts
+          configMap:
+            name: hammerdb-pg-tpch-scripts

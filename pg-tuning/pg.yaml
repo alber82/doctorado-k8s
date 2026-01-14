@@ -1,0 +1,73 @@
+# Instalar el operador
+kubectl apply -f \
+  https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.27.1/cnpg-1.27.1.yaml
+
+  # Esperar que esté ready
+kubectl get pods -n cnpg-system
+
+# Crear el cluster
+cat <<EOF | kubectl apply -f -
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-cluster
+spec:
+  instances: 3
+  
+  # Storage en SSD
+  storage:
+    size: 50Gi
+    storageClass: local-path
+  
+  # Resources por instancia
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  
+  # PostgreSQL config inicial (baseline)
+  postgresql:
+    parameters:
+      max_connections: "100"
+      shared_buffers: "512MB"
+      effective_cache_size: "2GB"
+      maintenance_work_mem: "256MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "16MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"  # SSD
+      effective_io_concurrency: "200"
+      work_mem: "10MB"
+      min_wal_size: "1GB"
+      max_wal_size: "4GB"
+  
+  # Monitoring
+  monitoring:
+    enablePodMonitor: true
+  
+  # Node affinity
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: cnpg.io/cluster
+            operator: In
+            values:
+            - pg-cluster
+        topologyKey: kubernetes.io/hostname
+EOF
+
+# Verificar deployment
+kubectl get cluster pg-cluster
+kubectl get pods -l cnpg.io/cluster=pg-cluster
+
+# Obtener conexión
+kubectl get secret pg-cluster-app -o jsonpath='{.data.password}' | base64 -d
+# Guardar password
+
+# Port-forward para acceso local
+kubectl port-forward svc/pg-cluster-rw 5432:5432 &

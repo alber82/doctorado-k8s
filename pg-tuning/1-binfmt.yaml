@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: benchmark
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: binfmt-amd64
+  namespace: benchmark
+spec:
+  selector:
+    matchLabels:
+      app: binfmt-amd64
+  template:
+    metadata:
+      labels:
+        app: binfmt-amd64
+    spec:
+      nodeSelector:
+        role: benchmark
+      hostPID: true
+      containers:
+      - name: binfmt
+        image: tonistiigi/binfmt:latest
+        securityContext:
+          privileged: true
+        args: ["--install", "amd64"]
+      restartPolicy: Always

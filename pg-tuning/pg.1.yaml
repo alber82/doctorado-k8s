@@ -1,0 +1,55 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-cluster
+  namespace: pg
+spec:
+  instances: 3
+  
+  # Configuración de PostgreSQL
+  postgresql:
+    parameters:
+      # Habilitar pg_stat_statements
+      shared_preload_libraries: "pg_stat_statements"
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: "all"
+      pg_stat_statements.track_utility: "on"
+      pg_stat_statements.track_planning: "on"
+      
+      # Otras configuraciones útiles
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "1GB"
+      work_mem: "16MB"
+      maintenance_work_mem: "128MB"
+  
+  # Afinidad de nodos
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+            - pg-cluster
+  
+  # Bootstrap con extensión
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+  
+  storage:
+    size: 20Gi
+    storageClass: local-path  # Ajusta según tu storage class
+  
+  resources:
+    requests:
+      memory: "6Gi"
+      cpu: "3"
+    limits:
+      memory: "7Gi"
+      cpu: "3500m"

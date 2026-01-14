@@ -1,0 +1,153 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: benchmark
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-bench-secret
+  namespace: benchmark
+type: Opaque
+stringData:
+  PGSUPERUSER: "postgres"
+  PGSUPERPASS: "rnMZxmdVJI3rd8lJAWME8ZOgWyg4YxC9p4OlB1ozTw5igg1bdoaAr9vfHQMyqvsj"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hammerdb-pg-tpch-scripts
+  namespace: benchmark
+data:
+  pg_tpch_buildschema.tcl: |
+    #!/bin/tclsh
+    # TPC-H build schema para PostgreSQL
+
+    puts "== TPC-H build schema para PostgreSQL =="
+
+    dbset db pg
+    dbset bm TPC-H
+
+    # ========= VARIABLES DE ENTORNO =========
+    set pg_host $::env(PG_HOST)
+    set pg_port $::env(PG_PORT)
+
+    set pg_sslmode "prefer"
+    if {[info exists ::env(PG_SSLMODE)]} {
+        set pg_sslmode $::env(PG_SSLMODE)
+    }
+
+    set pg_superuser   $::env(PGSUPERUSER)
+    set pg_superpass   $::env(PGSUPERPASS)
+    set pg_defaultdb   $::env(PG_DEFAULT_DB)
+    set pg_user        $::env(PGSUPERUSER)
+    set pg_pass        $::env(PGSUPERPASS)
+    set pg_db          $::env(PG_DB)
+
+    set tpch_scale 1
+    if {[info exists ::env(TPCH_SCALE)]} {
+        set tpch_scale $::env(TPCH_SCALE)
+    }
+
+    set tpch_threads 4
+    if {[info exists ::env(TPCH_BUILD_THREADS)]} {
+        set tpch_threads $::env(TPCH_BUILD_THREADS)
+    }
+
+    # ========= CONFIGURAR CONNECTION Y TPC-H =========
+    diset connection pg_host    $pg_host
+    diset connection pg_port    $pg_port
+    diset connection pg_sslmode $pg_sslmode
+
+    diset tpch pg_scale_fact          $tpch_scale
+    diset tpch pg_num_tpch_threads    $tpch_threads
+
+    diset tpch pg_tpch_superuser      $pg_superuser
+    diset tpch pg_tpch_superuserpass  $pg_superpass
+    diset tpch pg_tpch_defaultdbase   $pg_defaultdb
+
+    diset tpch pg_tpch_user           $pg_user
+    diset tpch pg_tpch_pass           $pg_pass
+    diset tpch pg_tpch_dbase          $pg_db
+    diset tpch pg_tpch_tspace         pg_default
+
+    puts "== Configuración actual (build) =="
+    print dict
+
+    puts "== Iniciando buildschema TPC-H =="
+    buildschema
+    puts "== TPC-H buildschema COMPLETADO =="
+
+  pg_tpch_run.tcl: |
+    #!/bin/tclsh
+    # TPC-H RUN para PostgreSQL
+
+    puts "== TPC-H RUN para PostgreSQL =="
+
+    dbset db pg
+    dbset bm TPC-H
+
+    # ========= VARIABLES DE ENTORNO =========
+    set pg_host $::env(PG_HOST)
+    set pg_port $::env(PG_PORT)
+
+    set pg_sslmode "prefer"
+    if {[info exists ::env(PG_SSLMODE)]} {
+        set pg_sslmode $::env(PG_SSLMODE)
+    }
+
+    set pg_user  $::env(PGSUPERUSER)
+    set pg_pass  $::env(PGSUPERPASS)
+    set pg_db    $::env(PG_DB)
+
+    set tpch_scale 1
+    if {[info exists ::env(TPCH_SCALE)]} {
+        set tpch_scale $::env(TPCH_SCALE)
+    }
+
+    set tpch_querysets 1
+    if {[info exists ::env(TPCH_TOTAL_QUERYSETS)]} {
+        set tpch_querysets $::env(TPCH_TOTAL_QUERYSETS)
+    }
+
+    set tpch_dop 1
+    if {[info exists ::env(TPCH_DOP)]} {
+        set tpch_dop $::env(TPCH_DOP)
+    }
+
+    set tpch_vu 1
+    if {[info exists ::env(TPCH_VU)]} {
+        set tpch_vu $::env(TPCH_VU)
+    }
+
+    # ========= CONFIGURAR CONNECTION Y TPC-H =========
+    diset connection pg_host    $pg_host
+    diset connection pg_port    $pg_port
+    diset connection pg_sslmode $pg_sslmode
+
+    diset tpch pg_scale_fact         $tpch_scale
+    diset tpch pg_tpch_user          $pg_user
+    diset tpch pg_tpch_pass          $pg_pass
+    diset tpch pg_tpch_dbase         $pg_db
+
+    diset tpch pg_total_querysets    $tpch_querysets
+    diset tpch pg_degree_of_parallel $tpch_dop
+
+    puts "== Configuración actual (run) =="
+    print dict
+
+    puts "== Cargando script TPC-H =="
+    loadscript
+
+    vuset vu         $tpch_vu
+    vuset showoutput 1
+    vuset logtotemp  1
+    vuset unique     1
+
+    puts "== Creando VUs =="
+    vucreate
+
+    puts "== Lanzando workload TPC-H =="
+    vurun
+    puts "== TPC-H RUN COMPLETADO =="
+---
